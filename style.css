@@ -1,0 +1,615 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /* Remove tap highlight and white flash on mobile */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+body {
+    font-family: 'Georgia', serif;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(139, 69, 19, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(101, 67, 33, 0.06) 0%, transparent 50%),
+        linear-gradient(135deg, #3D4A2A 0%, #4A5A35 30%, #556B40 70%, #5A6B45 100%);
+    min-height: 100vh;
+    color: #2F1B14;
+    overflow-x: hidden;
+    position: relative;
+    /* Prevent white flash on tap */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+/*
+WHITE FLASH ON HIT
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: -1;
+}
+*/
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+}
+
+header {
+    margin-bottom: 30px;
+    background: rgba(101, 67, 33, 0.12);
+    padding: 25px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(101, 67, 33, 0.25);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 4px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+}
+
+header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+        radial-gradient(circle at 70% 80%, rgba(101, 67, 33, 0.08) 0%, transparent 50%);
+    border-radius: 20px;
+    pointer-events: none;
+}
+
+.title {
+    font-family: 'UnifrakturCook', cursive;
+    white-space: norap;
+    font-size: clamp(1.5rem, 6vw, 2.8rem);
+    color: #FFF8DC;
+    text-shadow: 
+        2px 2px 0px #8B4513, 
+        4px 4px 0px rgba(0,0,0,0.4),
+        0 0 10px rgba(255, 248, 220, 0.3);
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: #F5DEB3;
+    font-style: italic;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 1;
+}
+
+.spoon-container {
+    position: relative;
+    margin: 40px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    overflow: hidden;
+}
+
+.spoon {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    cursor: pointer;
+    transition: transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Remove tap highlight and prevent white flash */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Spoon Emoji Styling */
+.spoon-left {
+    font-size: 8rem;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    transition: transform 0.15s ease;
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+    z-index: 1;
+}
+
+.spoon-right {
+    font-size: 8rem;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(15deg);
+    transition: transform 0.15s ease;
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+    z-index: 1;
+}
+
+.spoon:hover {
+    transform: scale(1.05);
+}
+
+.spoon.active {
+    animation: spoonClap 0.15s ease-in-out;
+}
+
+.spoon.active .spoon-left {
+    animation: leftSpoonClink 0.15s ease-in-out;
+}
+
+.spoon.active .spoon-right {
+    animation: rightSpoonClink 0.15s ease-in-out;
+}
+
+@keyframes spoonClap {
+    0%, 100% { transform: scale(1.05); }
+    50% { transform: scale(1.08); }
+}
+
+@keyframes leftSpoonClink {
+    0%, 100% { transform: translate(-50%, -50%) rotate(-15deg); }
+    50% { transform: translate(-50%, -50%) rotate(-5deg); }
+}
+
+@keyframes rightSpoonClink {
+    0%, 100% { transform: translate(-50%, -50%) rotate(15deg); }
+    50% { transform: translate(-50%, -50%) rotate(5deg); }
+}
+
+.sound-indicator {
+    display: none;
+}
+
+.controls {
+    margin: 30px 0;
+    background: rgba(101, 67, 33, 0.12);
+    padding: 25px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(101, 67, 33, 0.25);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 4px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+}
+
+.controls::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.04) 0%, transparent 50%);
+    border-radius: 20px;
+    pointer-events: none;
+}
+
+.btn {
+    padding: 12px 24px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    /* Remove tap highlight and prevent white flash */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.btn.primary {
+    background: 
+        linear-gradient(135deg, #6B5B47 0%, #8B7355 50%, #6B5B47 100%);
+    color: #FFF8DC;
+    box-shadow: 
+        0 4px 15px rgba(107, 91, 71, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    border: 2px solid #5A4A37;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+}
+
+.btn.primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 20px rgba(107, 91, 71, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.btn.secondary {
+    background: 
+        linear-gradient(135deg, #5A4A37 0%, #6B5B47 50%, #5A4A37 100%);
+    color: #FFF8DC;
+    box-shadow: 
+        0 4px 15px rgba(90, 74, 55, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    border: 2px solid #4A3A27;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+}
+
+.btn.secondary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 20px rgba(90, 74, 55, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+
+.sound-options {
+    margin: 30px 0;
+    background: rgba(101, 67, 33, 0.12);
+    padding: 25px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(101, 67, 33, 0.25);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 4px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+}
+
+.sound-options::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.04) 0%, transparent 50%);
+    border-radius: 20px;
+    pointer-events: none;
+}
+
+.sound-options h3 {
+    margin-bottom: 15px;
+    color: #F5DEB3;
+    font-size: 1.3rem;
+}
+
+.sound-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.sound-btn {
+    padding: 12px 18px;
+    border: 2px solid #6B5B47;
+    border-radius: 25px;
+    background: 
+        linear-gradient(135deg, rgba(255, 248, 220, 0.15) 0%, rgba(107, 91, 71, 0.08) 100%);
+    color: #FFF8DC;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+    z-index: 1;
+    /* Remove tap highlight and prevent white flash */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.sound-btn:hover {
+    background: 
+        linear-gradient(135deg, rgba(255, 248, 220, 0.25) 0%, rgba(107, 91, 71, 0.15) 100%);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.sound-btn.active {
+    background: 
+        linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+    color: #2F1B14;
+    box-shadow: 
+        0 4px 15px rgba(212, 175, 55, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-color: #B8860B;
+}
+
+
+.motion-info {
+    margin: 30px 0;
+    background: rgba(101, 67, 33, 0.12);
+    padding: 25px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(101, 67, 33, 0.25);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 4px 20px rgba(0, 0, 0, 0.15);
+    position: relative;
+}
+
+.motion-info::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.04) 0%, transparent 50%);
+    border-radius: 20px;
+    pointer-events: none;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 15px 0;
+    padding: 15px;
+    background: rgba(107, 91, 71, 0.08);
+    border-radius: 15px;
+    border: 1px solid rgba(107, 91, 71, 0.15);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    position: relative;
+    z-index: 1;
+}
+
+.label {
+    font-weight: bold;
+    color: #F5DEB3;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    margin: 0 15px;
+    overflow: hidden;
+}
+
+.progress {
+    height: 100%;
+    background: linear-gradient(90deg, #32CD32, #FFD700, #FF6347);
+    border-radius: 5px;
+    width: 0%;
+    transition: width 0.1s ease;
+}
+
+.value {
+    font-weight: bold;
+    color: #FFD700;
+    min-width: 60px;
+    text-align: right;
+}
+
+.instructions {
+    margin: 30px 0;
+    background: rgba(101, 67, 33, 0.12);
+    padding: 25px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(101, 67, 33, 0.25);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 4px 20px rgba(0, 0, 0, 0.15);
+    text-align: left;
+    position: relative;
+}
+
+.instructions::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.04) 0%, transparent 50%);
+    border-radius: 20px;
+    pointer-events: none;
+}
+
+.instructions h3 {
+    margin-bottom: 15px;
+    color: #F5DEB3;
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 1;
+}
+
+.instructions ol {
+    padding-left: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.instructions li {
+    margin: 8px 0;
+    color: #F5DEB3;
+    line-height: 1.5;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+}
+
+.spoon-info {
+    margin: 30px 0;
+    background: rgba(101, 67, 33, 0.12);
+    padding: 25px;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(101, 67, 33, 0.25);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 4px 20px rgba(0, 0, 0, 0.15);
+    text-align: left;
+    position: relative;
+}
+
+.spoon-info::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.04) 0%, transparent 50%);
+    border-radius: 20px;
+    pointer-events: none;
+}
+
+.spoon-info h3 {
+    margin-bottom: 15px;
+    color: #F5DEB3;
+    text-align: center;
+    font-family: 'Cinzel', serif;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 1;
+}
+
+.spoon-descriptions {
+    position: relative;
+    z-index: 1;
+}
+
+.spoon-desc {
+    margin: 12px 0;
+    color: #F5DEB3;
+    line-height: 1.5;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+    padding: 10px;
+    background: rgba(107, 91, 71, 0.08);
+    border-radius: 10px;
+    border: 1px solid rgba(107, 91, 71, 0.15);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.spoon-desc strong {
+    color: #FFD700;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+@media (max-width: 768px) {
+    .spoon-left,
+    .spoon-right {
+        font-size: 7rem;
+    }
+    
+    .spoon-container {
+        min-height: 280px;
+    }
+    
+    .spoon {
+        width: 280px;
+        height: 280px;
+    }
+}
+
+@media (max-width: 600px) {
+    .title {
+        font-size: 2.4rem;
+        line-height: 1.2;
+    }
+    
+    .sound-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .sound-btn {
+        width: 200px;
+    }
+    
+    
+    .info-item {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .progress-bar {
+        margin: 0;
+        width: 100%;
+    }
+}
+
+.copyright {
+    margin-top: 40px;
+    padding: 20px;
+    text-align: center;
+    background: rgba(101, 67, 33, 0.08);
+    border-radius: 15px;
+    border: 1px solid rgba(101, 67, 33, 0.15);
+    backdrop-filter: blur(5px);
+}
+
+.copyright p {
+    color: #F5DEB3;
+    font-size: 0.9rem;
+    margin: 0;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+    opacity: 0.8;
+}
+
+@media (max-width: 480px) {
+    .title {
+        font-size: 2.8rem;
+        line-height: 1.1;
+        padding: 0 10px;
+    }
+    
+    .spoon-left,
+    .spoon-right {
+        font-size: 6rem;
+    }
+    
+    .spoon-container {
+        min-height: 250px;
+    }
+    
+    .spoon {
+        width: 250px;
+        height: 250px;
+    }
+}
