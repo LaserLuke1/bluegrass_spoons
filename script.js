@@ -662,6 +662,15 @@ class SpoonSoundApp {
             // Add the new material class
             spoonContainer.classList.add(`material-${sound}`);
         }
+        
+        // Update folk art background for material styling
+        const folkArtBackground = document.querySelector('.folk-art-background');
+        if (folkArtBackground) {
+            // Remove all material classes
+            folkArtBackground.classList.remove('material-wooden-spoon', 'material-metal-spoon', 'material-plastic-spoon', 'material-ceramic-spoon');
+            // Add the new material class
+            folkArtBackground.classList.add(`material-${sound}`);
+        }
     }
 
     async testMotionPermission() {

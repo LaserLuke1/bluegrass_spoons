@@ -73,7 +73,7 @@ header::before {
     border-radius: 20px;
     pointer-events: none;
 }
-
+/*
 .title {
     font-family: 'Flavors', 'Archivo Black', 'Passion One', cursive;
     white-space: nowrap;
@@ -100,15 +100,41 @@ header::before {
     position: relative;
     z-index: 1;
 }
-
+*/
 .spoon-container {
     position: relative;
     margin: 40px 0;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 300px;
+    min-height: 400px;
     overflow: hidden;
+}
+
+.folk-art-background {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 0;
+    opacity: 1;
+    pointer-events: none;
+}
+
+.folk-art-svg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: 
+        brightness(0.9)
+        contrast(1.1)
+        sepia(0.15)
+        hue-rotate(5deg);
 }
 
 .spoon {
@@ -120,6 +146,7 @@ header::before {
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 2;
     /* Remove tap highlight and prevent white flash */
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
@@ -137,6 +164,7 @@ header::before {
     transition: transform 0.15s ease, filter 0.3s ease;
     filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     z-index: 1;
+    opacity: 1;
 }
 
 .spoon-right {
@@ -148,6 +176,7 @@ header::before {
     transition: transform 0.15s ease, filter 0.3s ease;
     filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     z-index: 1;
+    opacity: 1;
 }
 
 /* Material-specific spoon coloring */
@@ -186,6 +215,39 @@ header::before {
         saturate(0.8)
         hue-rotate(15deg)
         sepia(0.1);
+}
+
+/* Folk Art Background Material Styling */
+.folk-art-background.material-wooden-spoon .folk-art-svg {
+    filter: 
+        brightness(0.8)
+        contrast(1.2)
+        sepia(0.4)
+        hue-rotate(-10deg);
+}
+
+.folk-art-background.material-metal-spoon .folk-art-svg {
+    filter: 
+        brightness(0.7)
+        contrast(1.3)
+        saturate(0.6)
+        hue-rotate(15deg);
+}
+
+.folk-art-background.material-plastic-spoon .folk-art-svg {
+    filter: 
+        brightness(1.1)
+        contrast(1.0)
+        sepia(0.2)
+        hue-rotate(-20deg);
+}
+
+.folk-art-background.material-ceramic-spoon .folk-art-svg {
+    filter: 
+        brightness(0.9)
+        contrast(1.1)
+        sepia(0.3)
+        hue-rotate(8deg);
 }
 
 .spoon:hover {
@@ -806,13 +868,18 @@ header::before {
 }
 
 @media (max-width: 768px) {
+    .folk-art-background {
+        width: 350px;
+        height: 350px;
+    }
+    
     .spoon-left,
     .spoon-right {
         font-size: 7rem;
     }
     
     .spoon-container {
-        min-height: 280px;
+        min-height: 380px;
     }
     
     .spoon {
@@ -924,13 +991,18 @@ header::before {
         padding: 0 10px;
     }
     
+    .folk-art-background {
+        width: 300px;
+        height: 300px;
+    }
+    
     .spoon-left,
     .spoon-right {
         font-size: 6rem;
     }
     
     .spoon-container {
-        min-height: 250px;
+        min-height: 350px;
     }
     
     .spoon {
