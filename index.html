@@ -10,7 +10,7 @@
 <body>
     <div class="container">
         <header>
-            <h1 class="title">🎵 Shaki Spoons 🎵</h1>
+            <h1 class="title">Shaki Spoons</h1>
         </header>
 
         <div class="spoon-container">
@@ -47,6 +47,13 @@
                 <span class="value" id="motionValue">0</span>
             </div>
             <div class="info-item">
+                <span class="label">Playing Tempo:</span>
+                <div class="tempo-controls">
+                    <input type="range" id="tempoSlider" min="0.5" max="3.0" step="0.1" value="1.0" class="tempo-slider">
+                    <span class="tempo-value" id="tempoValue">1.0x</span>
+                </div>
+            </div>
+            <div class="info-item">
                 <span class="label">Last Sound:</span>
                 <span class="value" id="lastSound">None</span>
             </div>
@@ -60,6 +67,7 @@
                 <li><strong>Shake your phone</strong> to play shaki spoon sounds (the main feature!)</li>
                 <li>Tap the large spoon or anywhere on screen as an alternative</li>
                 <li>Select different spoon types for authentic shaki sounds</li>
+                <li><strong>Adjust the Playing Tempo slider</strong> to change rhythm patterns and speed</li>
                 <li>Use your device's volume controls to adjust sound level</li>
                 <li>Try rapid shaking for shaki-style rhythms</li>
             </ol>
