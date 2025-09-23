@@ -4,7 +4,6 @@ class SpoonSoundApp {
         // App state
         this.isListening = false;
         this.currentSound = 'wooden-spoon';
-        this.tempo = 1.0; // Playing speed multiplier
 
         // Audio dynamics
         this.baseVolume = 1.0; // master volume (uses device volume too)
@@ -67,8 +66,6 @@ class SpoonSoundApp {
         this.motionProgress = document.getElementById('motionProgress');
         this.motionValue = document.getElementById('motionValue');
         this.lastSoundDisplay = document.getElementById('lastSound');
-        this.tempoSlider = document.getElementById('tempoSlider');
-        this.tempoValue = document.getElementById('tempoValue');
     }
 
     setupEventListeners() {
@@ -80,12 +77,6 @@ class SpoonSoundApp {
             btn.addEventListener('click', (e) => {
                 this.selectSound(e.target.dataset.sound);
             });
-        });
-
-        // Tempo control
-        this.tempoSlider.addEventListener('input', (e) => {
-            this.tempo = parseFloat(e.target.value);
-            this.tempoValue.textContent = this.tempo.toFixed(1) + 'x';
         });
 
         // Multiple ways to trigger sounds
@@ -286,19 +277,12 @@ class SpoonSoundApp {
         this.lastSoundTime = now;
         this.playSpoonSound();
 
-        // Trigger spoon clapping animation
-        this.spoon.classList.add('active');
-        clearTimeout(this._animTO);
-        this._animTO = setTimeout(() => {
-            this.spoon.classList.remove('active');
-        }, 200);
-
         // Visual pop scaled by intensity
         const intensity = this.getCurrentShakeIntensity();
         const scale = intensity === 'strong' ? 1.15 : intensity === 'medium' ? 1.08 : 1.03;
         this.spoon.style.transform = `scale(${scale})`;
-        clearTimeout(this._scaleTO);
-        this._scaleTO = setTimeout(() => {
+        clearTimeout(this._animTO);
+        this._animTO = setTimeout(() => {
             this.spoon.style.transform = '';
         }, 140);
     }
@@ -317,10 +301,10 @@ class SpoonSoundApp {
         const finalVolume = this.baseVolume * intensityFactor;
 
         // Percussive noise bursts
-        this.createVariedSpoonPercussion(cfg, now, intensity, rhythm, finalVolume, this.tempo);
+        this.createVariedSpoonPercussion(cfg, now, intensity, rhythm, finalVolume);
 
         // Tonal character with harmonics & micro-sweep
-        this.createRichMaterialTone(cfg, now, intensity, rhythm, finalVolume, this.tempo);
+        this.createRichMaterialTone(cfg, now, intensity, rhythm, finalVolume);
 
         const rhythmInfo = rhythm.isFastRhythm ? ' (Fast Rhythm)' : '';
         this.lastSoundDisplay && (this.lastSoundDisplay.textContent = `${cfg.name} - ${intensity}${rhythmInfo}`);
@@ -368,7 +352,7 @@ class SpoonSoundApp {
         });
     }
 
-    createVariedSpoonPercussion(cfg, startTime, intensity, rhythm, finalVolume, tempo = 1.0) {
+    createVariedSpoonPercussion(cfg, startTime, intensity, rhythm, finalVolume) {
         let numBursts, baseDur, volMul, filtMul;
         switch (intensity) {
             case 'strong':
@@ -393,24 +377,12 @@ class SpoonSoundApp {
             numBursts = Math.max(1, numBursts - 1);
             baseDur *= 0.8;
         }
-        
-        // Apply tempo effects
-        if (tempo > 1.5) {
-            // Fast tempo: more bursts, shorter duration
-            numBursts = Math.min(numBursts * 1.5, 6);
-            baseDur *= 0.7;
-        } else if (tempo < 0.8) {
-            // Slow tempo: fewer bursts, longer duration
-            numBursts = Math.max(numBursts * 0.7, 1);
-            baseDur *= 1.3;
-        }
-        
-        this.createSpoonPercussionBursts(cfg, startTime, numBursts, baseDur, volMul, filtMul, finalVolume, tempo);
+        this.createSpoonPercussionBursts(cfg, startTime, numBursts, baseDur, volMul, filtMul, finalVolume);
     }
 
-    createSpoonPercussionBursts(cfg, startTime, numBursts, baseDur, volMul, filtMul, finalVolume, tempo = 1.0) {
+    createSpoonPercussionBursts(cfg, startTime, numBursts, baseDur, volMul, filtMul, finalVolume) {
         for (let i = 0; i < numBursts; i++) {
-            const t = startTime + (i * 0.01 / tempo); // Tempo affects timing between bursts
+            const t = startTime + (i * 0.01);
             const dur = baseDur * (0.8 + Math.random() * 0.4);
 
             // Noise buffer
@@ -490,9 +462,6 @@ class SpoonSoundApp {
             toneDur *= 0.7;
             toneVol *= 0.85;
         }
-        
-        // Apply tempo effects to tone duration
-        toneDur *= (tempo > 1.5 ? 0.8 : tempo < 0.8 ? 1.2 : 1.0);
 
         const freqs = cfg.frequencies;
         let f0;

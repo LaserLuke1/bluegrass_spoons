@@ -76,20 +76,18 @@ header::before {
 
 .title {
     font-family: 'Flavors', 'Archivo Black', 'Passion One', cursive;
-    white-space: nowrap;
+    white-space: norap;
     font-size: clamp(1.5rem, 6vw, 2.8rem);
     color: #FFF8DC;
     text-shadow: 
         2px 2px 0px #8B4513, 
         4px 4px 0px rgba(0,0,0,0.4),
         0 0 10px rgba(255, 248, 220, 0.3);
+    margin-bottom: 10px;
     position: relative;
     z-index: 1;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
     text-align: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 }
 
 .subtitle {
@@ -133,7 +131,7 @@ header::before {
     position: absolute;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%) rotate(-25deg) translateX(-25px);
+    transform: translate(-50%, -50%) rotate(-15deg);
     transition: transform 0.15s ease;
     filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     z-index: 1;
@@ -144,7 +142,7 @@ header::before {
     position: absolute;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%) rotate(25deg) translateX(25px);
+    transform: translate(-50%, -50%) rotate(15deg);
     transition: transform 0.15s ease;
     filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     z-index: 1;
@@ -175,54 +173,38 @@ header::before {
 
 @keyframes leftSpoonClap {
     0% { 
-        transform: translate(-50%, -50%) rotate(-25deg) translateX(-25px); 
+        transform: translate(-50%, -50%) rotate(-15deg) translateX(-10px); 
         filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     }
-    20% { 
-        transform: translate(-50%, -50%) rotate(-5deg) translateX(-5px); 
-        filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.4));
-    }
-    40% { 
-        transform: translate(-50%, -50%) rotate(0deg) translateX(0px); 
-        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.6));
+    30% { 
+        transform: translate(-50%, -50%) rotate(-2deg) translateX(5px); 
+        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));
     }
     60% { 
-        transform: translate(-50%, -50%) rotate(0deg) translateX(0px); 
-        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.6));
-    }
-    80% { 
-        transform: translate(-50%, -50%) rotate(-5deg) translateX(-5px); 
-        filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.4));
+        transform: translate(-50%, -50%) rotate(-2deg) translateX(5px); 
+        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));
     }
     100% { 
-        transform: translate(-50%, -50%) rotate(-25deg) translateX(-25px); 
+        transform: translate(-50%, -50%) rotate(-15deg) translateX(-10px); 
         filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     }
 }
 
 @keyframes rightSpoonClap {
     0% { 
-        transform: translate(-50%, -50%) rotate(25deg) translateX(25px); 
+        transform: translate(-50%, -50%) rotate(15deg) translateX(10px); 
         filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     }
-    20% { 
-        transform: translate(-50%, -50%) rotate(5deg) translateX(5px); 
-        filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.4));
-    }
-    40% { 
-        transform: translate(-50%, -50%) rotate(0deg) translateX(0px); 
-        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.6));
+    30% { 
+        transform: translate(-50%, -50%) rotate(2deg) translateX(-5px); 
+        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));
     }
     60% { 
-        transform: translate(-50%, -50%) rotate(0deg) translateX(0px); 
-        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.6));
-    }
-    80% { 
-        transform: translate(-50%, -50%) rotate(5deg) translateX(5px); 
-        filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.4));
+        transform: translate(-50%, -50%) rotate(2deg) translateX(-5px); 
+        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));
     }
     100% { 
-        transform: translate(-50%, -50%) rotate(25deg) translateX(25px); 
+        transform: translate(-50%, -50%) rotate(15deg) translateX(10px); 
         filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     }
 }
@@ -467,54 +449,6 @@ header::before {
     color: #FFD700;
     min-width: 60px;
     text-align: right;
-}
-
-.tempo-controls {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex: 1;
-}
-
-.tempo-slider {
-    flex: 1;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-    cursor: pointer;
-}
-
-.tempo-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    border: 2px solid #FFF8DC;
-}
-
-.tempo-slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    border: 2px solid #FFF8DC;
-}
-
-.tempo-value {
-    font-weight: bold;
-    color: #D4AF37;
-    min-width: 50px;
-    text-align: center;
-    font-size: 0.9rem;
 }
 
 .instructions {
