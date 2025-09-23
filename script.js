@@ -5,14 +5,14 @@ class SpoonSoundApp {
         this.volume = 1.0; // Fixed at 100% - uses device volume
         this.motionThreshold = 8.0; // Higher threshold for actual shake detection
         this.lastSoundTime = 0;
-        this.soundCooldown = 100; // Shorter cooldown for fast rhythms
+        this.soundCooldown = 50; // Much shorter cooldown for quick tapping responsiveness
         this.permissionRequested = false;
         this.manualMode = false;
         
         // Motion detection variables
         this.lastAcceleration = { x: 0, y: 0, z: 0 };
         this.lastMotionTime = 0;
-        this.motionCooldown = 150; // Shorter cooldown for rapid shaking
+        this.motionCooldown = 80; // Much shorter cooldown for rapid shaking and quick tapping
         this.shakeHistory = []; // Track recent shake intensities
         this.audioInstances = []; // Track active audio instances for overlapping
         
@@ -277,21 +277,21 @@ class SpoonSoundApp {
         
         // Check for sustained shaking pattern (faster rhythm detection)
         const recentShakes = this.shakeHistory.filter(h => 
-            h.intensity > this.motionThreshold * 0.6 && 
-            timestamp - h.timestamp < 200 // Reduced from 300ms for faster detection
+            h.intensity > this.motionThreshold * 0.5 && 
+            timestamp - h.timestamp < 150 // Even faster detection for quick tapping
         );
         
-        // Require at least 1-2 significant shakes within 200ms for vigorous shake
+        // Require at least 1 significant shake within 150ms for vigorous shake
         if (recentShakes.length < 1) return false;
         
-        // For fast rhythms, allow single strong shakes or sustained moderate shakes
+        // Enhanced detection for quick tapping patterns
         if (recentShakes.length === 1) {
-            // Single strong shake - allow if intensity is high enough
-            return recentShakes[0].intensity > this.motionThreshold * 1.2;
+            // Single shake - allow if intensity is high enough (lowered threshold for responsiveness)
+            return recentShakes[0].intensity > this.motionThreshold * 1.0;
         } else {
-            // Multiple shakes - calculate average intensity
+            // Multiple shakes - calculate average intensity with lower threshold for quick tapping
             const avgIntensity = recentShakes.reduce((sum, shake) => sum + shake.intensity, 0) / recentShakes.length;
-            return avgIntensity > this.motionThreshold * 0.7; // Lower threshold for rhythm playing
+            return avgIntensity > this.motionThreshold * 0.6; // Even lower threshold for rhythm playing
         }
     }
     
@@ -366,7 +366,7 @@ class SpoonSoundApp {
         const avgTimeBetween = this.calculateAverageTimeBetween(recentShakes);
         
         return {
-            isFastRhythm: timeSinceLastShake < 300,
+            isFastRhythm: timeSinceLastShake < 250, // Faster detection for quick tapping
             avgTimeBetween: avgTimeBetween,
             intensity: this.getCurrentShakeIntensity(),
             shakeCount: recentShakes.length
@@ -419,10 +419,11 @@ class SpoonSoundApp {
                 filterVariation = 1.0;
         }
         
-        // Adjust for rhythm context
+        // Adjust for rhythm context - more aggressive for quick tapping
         if (rhythmContext.isFastRhythm) {
-            numBursts = Math.max(1, numBursts - 1); // Fewer bursts for fast rhythm
-            burstDuration *= 0.8; // Shorter duration for fast rhythm
+            numBursts = Math.max(1, Math.floor(numBursts * 0.7)); // Fewer bursts for fast rhythm
+            burstDuration *= 0.6; // Much shorter duration for fast rhythm
+            volumeMultiplier *= 1.1; // Slightly louder for quick taps
         }
         
         this.createSpoonPercussionBursts(soundConfig, startTime, numBursts, burstDuration, volumeMultiplier, filterVariation);
@@ -482,78 +483,103 @@ class SpoonSoundApp {
     }
     
     createVariedMaterialTone(soundConfig, startTime, intensity, rhythmContext) {
-        // Add varied tonal component based on intensity and rhythm
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-        const filter = this.audioContext.createBiquadFilter();
-        
-        oscillator.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-        
-        // Vary tone duration based on intensity
-        let toneDuration, toneVolume, freqMultiplier;
-        
-        switch (intensity) {
-            case 'strong':
-                toneDuration = 0.02 + Math.random() * 0.015; // 20-35ms
-                toneVolume = this.volume * 0.15;
-                freqMultiplier = 1.2;
-                break;
-            case 'light':
-                toneDuration = 0.008 + Math.random() * 0.007; // 8-15ms
-                toneVolume = this.volume * 0.05;
-                freqMultiplier = 0.9;
-                break;
-            default: // medium
-                toneDuration = 0.012 + Math.random() * 0.01; // 12-22ms
-                toneVolume = this.volume * 0.1;
-                freqMultiplier = 1.0;
-        }
-        
-        // Adjust for fast rhythm
-        if (rhythmContext.isFastRhythm) {
-            toneDuration *= 0.7;
-            toneVolume *= 0.8;
-        }
-        
-        // Select frequency based on intensity and rhythm
+        // Create enhanced tonal variation with harmonics and frequency sweeps
         const frequencies = soundConfig.frequencies;
-        let selectedFreq;
         
-        if (intensity === 'strong') {
-            // Strong shakes favor lower frequencies for more impact
-            selectedFreq = frequencies[0] * freqMultiplier;
-        } else if (intensity === 'light') {
-            // Light shakes favor higher frequencies for crispness
-            selectedFreq = frequencies[frequencies.length - 1] * freqMultiplier;
-        } else {
-            // Medium shakes use random frequency
-            selectedFreq = frequencies[Math.floor(Math.random() * frequencies.length)] * freqMultiplier;
+        // Create multiple oscillators for richer harmonic content
+        const numOscillators = intensity === 'strong' ? 3 : (intensity === 'light' ? 1 : 2);
+        
+        for (let i = 0; i < numOscillators; i++) {
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            const filter = this.audioContext.createBiquadFilter();
+            
+            oscillator.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            // Vary tone duration based on intensity and oscillator position
+            let toneDuration, toneVolume, freqMultiplier, harmonicMultiplier;
+            
+            switch (intensity) {
+                case 'strong':
+                    toneDuration = 0.025 + Math.random() * 0.02; // 25-45ms
+                    toneVolume = this.volume * (0.12 - i * 0.03); // Decreasing volume for harmonics
+                    freqMultiplier = 1.0 + (i * 0.3); // Increasing frequency for harmonics
+                    harmonicMultiplier = 1 + i; // Harmonic series
+                    break;
+                case 'light':
+                    toneDuration = 0.01 + Math.random() * 0.008; // 10-18ms
+                    toneVolume = this.volume * (0.08 - i * 0.02);
+                    freqMultiplier = 1.0 + (i * 0.2);
+                    harmonicMultiplier = 1 + (i * 0.5);
+                    break;
+                default: // medium
+                    toneDuration = 0.015 + Math.random() * 0.012; // 15-27ms
+                    toneVolume = this.volume * (0.1 - i * 0.025);
+                    freqMultiplier = 1.0 + (i * 0.25);
+                    harmonicMultiplier = 1 + (i * 0.7);
+            }
+            
+            // Adjust for fast rhythm
+            if (rhythmContext.isFastRhythm) {
+                toneDuration *= 0.6; // Even shorter for fast rhythm
+                toneVolume *= 0.7;
+            }
+            
+            // Enhanced frequency selection with more variation
+            let selectedFreq;
+            const baseFreqIndex = Math.floor(Math.random() * frequencies.length);
+            const baseFreq = frequencies[baseFreqIndex];
+            
+            if (intensity === 'strong') {
+                // Strong shakes: lower base frequency with harmonic overtones
+                selectedFreq = baseFreq * freqMultiplier * harmonicMultiplier;
+            } else if (intensity === 'light') {
+                // Light shakes: higher frequencies with subtle harmonics
+                selectedFreq = baseFreq * freqMultiplier * (1 + i * 0.3);
+            } else {
+                // Medium shakes: random frequency with moderate harmonics
+                selectedFreq = baseFreq * freqMultiplier * (1 + i * 0.5);
+            }
+            
+            // Add frequency sweep for more dynamic character
+            oscillator.frequency.setValueAtTime(selectedFreq, startTime);
+            if (toneDuration > 0.015) { // Only sweep for longer tones
+                const sweepEndFreq = selectedFreq * (0.8 + Math.random() * 0.4); // ±20% variation
+                oscillator.frequency.linearRampToValueAtTime(sweepEndFreq, startTime + toneDuration * 0.7);
+            }
+            
+            oscillator.type = soundConfig.type;
+            
+            // Enhanced filter with more dynamic response
+            filter.type = 'highpass';
+            const filterFreq = soundConfig.filterFreq * (0.3 + i * 0.2) * freqMultiplier;
+            filter.frequency.setValueAtTime(filterFreq, startTime);
+            filter.Q.setValueAtTime(1 + (intensity === 'strong' ? 0.8 : 0.3), startTime);
+            
+            // Dynamic volume envelope with more character
+            gainNode.gain.setValueAtTime(0, startTime);
+            gainNode.gain.linearRampToValueAtTime(toneVolume, startTime + 0.002);
+            
+            // Add subtle volume modulation for more organic sound
+            if (toneDuration > 0.02) {
+                const modTime = startTime + toneDuration * 0.3;
+                const modVolume = toneVolume * (0.7 + Math.random() * 0.3);
+                gainNode.gain.linearRampToValueAtTime(modVolume, modTime);
+            }
+            
+            gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + toneDuration);
+            
+            oscillator.start(startTime);
+            oscillator.stop(startTime + toneDuration);
+            
+            // Track tonal instance for cleanup
+            this.audioInstances.push({
+                source: oscillator,
+                contextTime: startTime + toneDuration
+            });
         }
-        
-        oscillator.frequency.setValueAtTime(selectedFreq, startTime);
-        oscillator.type = soundConfig.type;
-        
-        // Vary filter based on intensity
-        filter.type = 'highpass';
-        const filterFreq = soundConfig.filterFreq * 0.5 * freqMultiplier;
-        filter.frequency.setValueAtTime(filterFreq, startTime);
-        filter.Q.setValueAtTime(1 + (intensity === 'strong' ? 0.5 : 0), startTime);
-        
-        // Volume envelope
-        gainNode.gain.setValueAtTime(0, startTime);
-        gainNode.gain.linearRampToValueAtTime(toneVolume, startTime + 0.001);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + toneDuration);
-        
-        oscillator.start(startTime);
-        oscillator.stop(startTime + toneDuration);
-        
-        // Track tonal instance for cleanup
-        this.audioInstances.push({
-            source: oscillator,
-            contextTime: startTime + toneDuration
-        });
     }
     
     
