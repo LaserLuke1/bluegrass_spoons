@@ -3,16 +3,17 @@ class SpoonSoundApp {
         this.isListening = false;
         this.currentSound = 'wooden-spoon';
         this.volume = 1.0; // Fixed at 100% - uses device volume
-        this.motionThreshold = 2.5; // Lower threshold for shake detection
+        this.motionThreshold = 8.0; // Higher threshold for actual shake detection
         this.lastSoundTime = 0;
-        this.soundCooldown = 200; // Slightly longer cooldown for motion
+        this.soundCooldown = 300; // Longer cooldown to prevent rapid triggers
         this.permissionRequested = false;
         this.manualMode = false;
         
         // Motion detection variables
         this.lastAcceleration = { x: 0, y: 0, z: 0 };
         this.lastMotionTime = 0;
-        this.motionCooldown = 300; // Prevent too frequent motion triggers
+        this.motionCooldown = 500; // Longer cooldown between shake detections
+        this.shakeHistory = []; // Track recent shake intensities
         
         // Spoon sound configurations optimized for realistic percussion
         this.sounds = {
@@ -232,6 +233,15 @@ class SpoonSoundApp {
         // Calculate total acceleration change
         const totalDelta = deltaX + deltaY + deltaZ;
         
+        // Add to shake history for pattern detection
+        this.shakeHistory.push({
+            intensity: totalDelta,
+            timestamp: now
+        });
+        
+        // Keep only recent history (last 500ms)
+        this.shakeHistory = this.shakeHistory.filter(h => now - h.timestamp < 500);
+        
         // Update motion display with current acceleration magnitude
         const currentMagnitude = Math.sqrt(
             acceleration.x * acceleration.x +
@@ -240,11 +250,11 @@ class SpoonSoundApp {
         );
         this.updateMotionDisplay(currentMagnitude);
         
-        // Check if this is a significant shake (rapid change in acceleration)
-        if (totalDelta > this.motionThreshold && 
-            now - this.lastMotionTime > this.motionCooldown) {
-            
-            console.log(`Shake detected! Delta: ${totalDelta.toFixed(2)}, Threshold: ${this.motionThreshold}`);
+        // Enhanced shake detection - require sustained vigorous movement
+        const isSignificantShake = this.detectVigorousShake(totalDelta, now);
+        
+        if (isSignificantShake && now - this.lastMotionTime > this.motionCooldown) {
+            console.log(`Vigorous shake detected! Delta: ${totalDelta.toFixed(2)}, Threshold: ${this.motionThreshold}`);
             this.triggerSound();
             this.lastMotionTime = now;
         }
@@ -257,11 +267,41 @@ class SpoonSoundApp {
         };
     }
     
+    detectVigorousShake(currentIntensity, timestamp) {
+        // Require high intensity
+        if (currentIntensity < this.motionThreshold) return false;
+        
+        // Check for sustained shaking pattern
+        const recentShakes = this.shakeHistory.filter(h => 
+            h.intensity > this.motionThreshold * 0.7 && 
+            timestamp - h.timestamp < 300
+        );
+        
+        // Require at least 2 significant shakes within 300ms for vigorous shake
+        if (recentShakes.length < 2) return false;
+        
+        // Calculate average intensity of recent shakes
+        const avgIntensity = recentShakes.reduce((sum, shake) => sum + shake.intensity, 0) / recentShakes.length;
+        
+        // Require sustained high intensity
+        return avgIntensity > this.motionThreshold * 0.8;
+    }
+    
     updateMotionDisplay(magnitude) {
         // Scale for better visual feedback (shake detection range)
-        const percentage = Math.min((magnitude / 10) * 100, 100);
+        const percentage = Math.min((magnitude / 15) * 100, 100);
         this.motionProgress.style.width = percentage + '%';
         this.motionValue.textContent = magnitude.toFixed(1);
+        
+        // Change color based on shake intensity
+        const progressBar = this.motionProgress;
+        if (magnitude > this.motionThreshold) {
+            progressBar.style.background = 'linear-gradient(90deg, #32CD32, #FFD700, #FF6347)';
+        } else if (magnitude > this.motionThreshold * 0.7) {
+            progressBar.style.background = 'linear-gradient(90deg, #32CD32, #FFD700)';
+        } else {
+            progressBar.style.background = 'linear-gradient(90deg, #32CD32)';
+        }
     }
     
     triggerSound() {
