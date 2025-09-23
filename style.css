@@ -75,7 +75,7 @@ header::before {
 }
 
 .title {
-    font-family: 'UnifrakturCook', cursive;
+    font-family: 'Flavors', 'Archivo Black', 'Passion One', cursive;
     white-space: norap;
     font-size: clamp(1.5rem, 6vw, 2.8rem);
     color: #FFF8DC;
