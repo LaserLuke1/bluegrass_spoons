@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shaki Spoons</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
     <link href="https://fonts.googleapis.com/css2?family=Creepster&family=UnifrakturCook:wght@700&family=Cinzel:wght@400;600&family=Fredoka+One:wght@400&family=Bungee:wght@400&family=Righteous:wght@400&family=Luckiest+Guy:wght@400&family=Chewy:wght@400&family=Boogaloo:wght@400&family=Oswald:wght@400;600;700&family=Anton:wght@400&family=Archivo+Black:wght@400&family=Passion+One:wght@400;700;900&family=Flavors&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1 class="title">🎵 Shaki Spoons 🎵</h1>
+            <h1 class="title">Shaki Spoons</h1>
         </header>
 
         <div class="spoon-container">
@@ -47,6 +47,13 @@
                 <span class="value" id="motionValue">0</span>
             </div>
             <div class="info-item">
+                <span class="label">Playing Tempo:</span>
+                <div class="tempo-controls">
+                    <input type="range" id="tempoSlider" min="0.5" max="3.0" step="0.1" value="1.0" class="tempo-slider">
+                    <span class="tempo-value" id="tempoValue">1.0x</span>
+                </div>
+            </div>
+            <div class="info-item">
                 <span class="label">Last Sound:</span>
                 <span class="value" id="lastSound">None</span>
             </div>
@@ -59,26 +66,39 @@
                 <li><strong>Allow motion sensor access when prompted</strong> - this enables the core shake-to-play feature!</li>
                 <li><strong>Shake your phone</strong> to play shaki spoon sounds (the main feature!)</li>
                 <li>Tap the large spoon or anywhere on screen as an alternative</li>
-                <li>Select different spoon types for authentic shaki sounds</li>
+                <li>Select different spoon types to hear different sounds</li>
+                <li><strong>Adjust the Playing Tempo slider</strong> to change rhythm patterns - from sparse hits to rapid arpeggiated cascades</li>
                 <li>Use your device's volume controls to adjust sound level</li>
                 <li>Try rapid shaking for shaki-style rhythms</li>
             </ol>
         </div>
 
-        <div class="spoon-info">
-            <h3>Shaki Spoon Types:</h3>
-            <div class="spoon-descriptions">
-                <div class="spoon-desc">
-                    <strong>🥄 Wooden Spoon:</strong> Traditional Appalachian sound - warm, earthy tones perfect for old-time shaki
+        <div class="spoon-types">
+            <h3>Spoon Collection</h3>
+            <div class="spoon-grid">
+                <div class="spoon-card wooden">
+                    <div class="spoon-icon">🥄</div>
+                    <div class="spoon-name">Wooden Spoon</div>
+                    <div class="spoon-description">Traditional Appalachian sound with warm, earthy tones perfect for old-time shaki rhythms</div>
+                    <div class="spoon-genre">Classic Folk</div>
                 </div>
-                <div class="spoon-desc">
-                    <strong>🥄 Metal Spoon:</strong> Bright, cutting sound - ideal for fast-paced shaki breakdowns
+                <div class="spoon-card metal">
+                    <div class="spoon-icon">🥄</div>
+                    <div class="spoon-name">Metal Spoon</div>
+                    <div class="spoon-description">Bright, cutting sound ideal for fast-paced shaki breakdowns and energetic performances</div>
+                    <div class="spoon-genre">Bluegrass</div>
                 </div>
-                <div class="spoon-desc">
-                    <strong>🥄 Plastic Spoon:</strong> Modern shaki sound - clean, consistent rhythm for contemporary styles
+                <div class="spoon-card plastic">
+                    <div class="spoon-icon">🥄</div>
+                    <div class="spoon-name">Plastic Spoon</div>
+                    <div class="spoon-description">Modern shaki sound with clean, consistent rhythm for contemporary musical styles</div>
+                    <div class="spoon-genre">Contemporary</div>
                 </div>
-                <div class="spoon-desc">
-                    <strong>🥄 Ceramic Spoon:</strong> Resonant, bell-like tones - perfect for waltz-time shaki ballads
+                <div class="spoon-card ceramic">
+                    <div class="spoon-icon">🥄</div>
+                    <div class="spoon-name">Ceramic Spoon</div>
+                    <div class="spoon-description">Resonant, bell-like tones perfect for waltz-time shaki ballads and melodic pieces</div>
+                    <div class="spoon-genre">Waltz Ballads</div>
                 </div>
             </div>
         </div>

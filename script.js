@@ -4,6 +4,7 @@ class SpoonSoundApp {
         // App state
         this.isListening = false;
         this.currentSound = 'wooden-spoon';
+        this.tempo = 1.0; // Playing speed multiplier
 
         // Audio dynamics
         this.baseVolume = 1.0; // master volume (uses device volume too)
@@ -54,6 +55,9 @@ class SpoonSoundApp {
         this.initializeElements();
         this.setupEventListeners();
         this.checkDeviceSupport();
+        
+        // Initialize default material styling
+        this.selectSound(this.currentSound);
     }
 
     initializeElements() {
@@ -66,6 +70,8 @@ class SpoonSoundApp {
         this.motionProgress = document.getElementById('motionProgress');
         this.motionValue = document.getElementById('motionValue');
         this.lastSoundDisplay = document.getElementById('lastSound');
+        this.tempoSlider = document.getElementById('tempoSlider');
+        this.tempoValue = document.getElementById('tempoValue');
     }
 
     setupEventListeners() {
@@ -77,6 +83,32 @@ class SpoonSoundApp {
             btn.addEventListener('click', (e) => {
                 this.selectSound(e.target.dataset.sound);
             });
+        });
+
+        // Enhanced tempo control with authentic pattern names
+        this.tempoSlider.addEventListener('input', (e) => {
+            this.tempo = parseFloat(e.target.value);
+            let patternName = '';
+            let description = '';
+            
+            if (this.tempo > 2.0) {
+                patternName = 'Arpeggiated';
+                description = 'Rapid cascading hits';
+            } else if (this.tempo > 1.5) {
+                patternName = 'Syncopated';
+                description = 'Off-beat emphasis';
+            } else if (this.tempo < 0.7) {
+                patternName = 'Sparse';
+                description = 'Single sustained hits';
+            } else if (this.tempo < 0.9) {
+                patternName = 'Sustained';
+                description = 'Spaced out rhythm';
+            } else {
+                patternName = 'Normal';
+                description = 'Classic shaki style';
+            }
+            
+            this.tempoValue.textContent = `${this.tempo.toFixed(1)}x (${patternName})`;
         });
 
         // Multiple ways to trigger sounds
@@ -275,16 +307,25 @@ class SpoonSoundApp {
         if (now - this.lastSoundTime < this.soundCooldown) return;
 
         this.lastSoundTime = now;
-        this.playSpoonSound();
+
+        // Trigger spoon clapping animation (always play, regardless of audio state)
+        this.spoon.classList.add('active');
+        clearTimeout(this._animTO);
+        this._animTO = setTimeout(() => {
+            this.spoon.classList.remove('active');
+        }, 200);
 
         // Visual pop scaled by intensity
         const intensity = this.getCurrentShakeIntensity();
         const scale = intensity === 'strong' ? 1.15 : intensity === 'medium' ? 1.08 : 1.03;
         this.spoon.style.transform = `scale(${scale})`;
-        clearTimeout(this._animTO);
-        this._animTO = setTimeout(() => {
+        clearTimeout(this._scaleTO);
+        this._scaleTO = setTimeout(() => {
             this.spoon.style.transform = '';
         }, 140);
+
+        // Play sound (only if audio context is ready)
+        this.playSpoonSound();
     }
 
     playSpoonSound() {
@@ -301,10 +342,10 @@ class SpoonSoundApp {
         const finalVolume = this.baseVolume * intensityFactor;
 
         // Percussive noise bursts
-        this.createVariedSpoonPercussion(cfg, now, intensity, rhythm, finalVolume);
+        this.createVariedSpoonPercussion(cfg, now, intensity, rhythm, finalVolume, this.tempo);
 
         // Tonal character with harmonics & micro-sweep
-        this.createRichMaterialTone(cfg, now, intensity, rhythm, finalVolume);
+        this.createRichMaterialTone(cfg, now, intensity, rhythm, finalVolume, this.tempo);
 
         const rhythmInfo = rhythm.isFastRhythm ? ' (Fast Rhythm)' : '';
         this.lastSoundDisplay && (this.lastSoundDisplay.textContent = `${cfg.name} - ${intensity}${rhythmInfo}`);
@@ -352,8 +393,10 @@ class SpoonSoundApp {
         });
     }
 
-    createVariedSpoonPercussion(cfg, startTime, intensity, rhythm, finalVolume) {
+    createVariedSpoonPercussion(cfg, startTime, intensity, rhythm, finalVolume, tempo = 1.0) {
         let numBursts, baseDur, volMul, filtMul;
+        
+        // Base pattern based on intensity
         switch (intensity) {
             case 'strong':
                 numBursts = 3 + Math.random() * 2;      // 3-5
@@ -373,16 +416,72 @@ class SpoonSoundApp {
                 volMul = 1.0;
                 filtMul = 1.0;
         }
+        
         if (rhythm.isFastRhythm) {
             numBursts = Math.max(1, numBursts - 1);
             baseDur *= 0.8;
         }
-        this.createSpoonPercussionBursts(cfg, startTime, numBursts, baseDur, volMul, filtMul, finalVolume);
+        
+        // Enhanced tempo-based arpeggiation patterns
+        if (tempo > 2.0) {
+            // ARPEGGIATED: Authentic cascading spoon patterns (like the waveform)
+            numBursts = 4 + Math.floor(Math.random() * 4); // 4-7 hits
+            baseDur = 0.03 + Math.random() * 0.02; // Shorter, sharper hits (30-50ms)
+            volMul = 1.3; // More dynamic
+            filtMul = 1.8; // Brighter, more cutting
+        } else if (tempo > 1.5) {
+            // SYNCOPATED: Clear off-beat patterns
+            numBursts = Math.min(numBursts * 2, 6);
+            baseDur = 0.04 + Math.random() * 0.02; // Medium-short hits
+            volMul = 1.1;
+            filtMul = 1.2;
+        } else if (tempo < 0.7) {
+            // SPARSE: Single, sustained hits
+            numBursts = 1;
+            baseDur = 0.12 + Math.random() * 0.06; // Longer, more resonant
+            volMul = 0.9;
+            filtMul = 0.7;
+        } else if (tempo < 0.9) {
+            // SUSTAINED: Fewer, more spaced out hits
+            numBursts = Math.max(Math.floor(numBursts * 0.6), 1);
+            baseDur = 0.08 + Math.random() * 0.04; // Medium duration
+            volMul = 0.95;
+            filtMul = 0.9;
+        }
+        
+        this.createSpoonPercussionBursts(cfg, startTime, numBursts, baseDur, volMul, filtMul, finalVolume, tempo);
     }
 
-    createSpoonPercussionBursts(cfg, startTime, numBursts, baseDur, volMul, filtMul, finalVolume) {
+    createSpoonPercussionBursts(cfg, startTime, numBursts, baseDur, volMul, filtMul, finalVolume, tempo = 1.0) {
         for (let i = 0; i < numBursts; i++) {
-            const t = startTime + (i * 0.01);
+            let t;
+            
+            // Enhanced timing patterns based on authentic spoon playing
+            if (tempo > 2.0) {
+                // ARPEGGIATED: Authentic cascading pattern (like the waveform)
+                // Creates the rapid-fire, cascading effect with slight acceleration
+                const baseInterval = 0.003; // 3ms base interval
+                const acceleration = i * 0.001; // Slight acceleration
+                const randomVariation = (Math.random() - 0.5) * 0.002; // Small random variation
+                t = startTime + (i * baseInterval) + acceleration + randomVariation;
+            } else if (tempo > 1.5) {
+                // SYNCOPATED: Clear off-beat timing with emphasis
+                const baseInterval = 0.008; // 8ms base
+                const offBeatOffset = (i % 2 === 0) ? 0.002 : 0.012; // Off-beat emphasis
+                t = startTime + (i * baseInterval) + offBeatOffset;
+            } else if (tempo < 0.7) {
+                // SPARSE: Single, sustained hits with long intervals
+                t = startTime + (i * 0.08); // 80ms intervals
+            } else if (tempo < 0.9) {
+                // SUSTAINED: Longer intervals, more spaced out
+                t = startTime + (i * 0.04); // 40ms intervals
+            } else {
+                // NORMAL: Regular intervals with slight variation
+                const baseInterval = 0.015; // 15ms base
+                const variation = (Math.random() - 0.5) * 0.005; // Small variation
+                t = startTime + (i * baseInterval) + variation;
+            }
+            
             const dur = baseDur * (0.8 + Math.random() * 0.4);
 
             // Noise buffer
@@ -409,9 +508,29 @@ class SpoonSoundApp {
             filter.frequency.setValueAtTime(ff, t);
             filter.Q.setValueAtTime(1 + Math.random() * 2, t);
 
-            // Volume
-            const base = finalVolume * (0.3 + Math.random() * 0.2) * volMul;
-            const vol = base * (1 - i * 0.2);
+            // Enhanced volume dynamics for authentic arpeggiation
+            let vol;
+            if (tempo > 2.0) {
+                // ARPEGGIATED: Create cascading volume pattern (like the waveform)
+                // First hit is strong, then slight decay with some accents
+                const baseVol = finalVolume * (0.4 + Math.random() * 0.3) * volMul;
+                if (i === 0) {
+                    vol = baseVol * 1.2; // Strong first hit
+                } else if (i === numBursts - 1) {
+                    vol = baseVol * 0.8; // Slight accent on last hit
+                } else {
+                    vol = baseVol * (0.7 + Math.random() * 0.4); // Variable middle hits
+                }
+            } else if (tempo > 1.5) {
+                // SYNCOPATED: Alternating strong/weak pattern
+                const baseVol = finalVolume * (0.35 + Math.random() * 0.25) * volMul;
+                vol = baseVol * (i % 2 === 0 ? 1.1 : 0.8);
+            } else {
+                // NORMAL/SPARSE: Traditional decay pattern
+                const base = finalVolume * (0.3 + Math.random() * 0.2) * volMul;
+                vol = base * (1 - i * 0.2);
+            }
+            
             gain.gain.setValueAtTime(0, t);
             gain.gain.linearRampToValueAtTime(vol, t + 0.001);
             gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
@@ -461,6 +580,23 @@ class SpoonSoundApp {
         if (rhythm.isFastRhythm) {
             toneDur *= 0.7;
             toneVol *= 0.85;
+        }
+        
+        // Apply tempo effects to create dramatic harmonic differences
+        if (tempo > 2.0) {
+            // High tempo: Much louder harmonics for arpeggiated effect
+            toneVol *= 1.8;
+            toneDur *= 0.6; // Shorter, sharper hits
+        } else if (tempo > 1.5) {
+            // Medium-high tempo: Enhanced harmonics for syncopation
+            toneVol *= 1.3;
+        } else if (tempo < 0.7) {
+            // Low tempo: Much longer sustained tones
+            toneDur *= 2.0; // Very long sustained tones
+            toneVol *= 0.8; // Quieter but longer
+        } else if (tempo < 0.9) {
+            // Medium-low tempo: Longer sustained tones
+            toneDur *= 1.5;
         }
 
         const freqs = cfg.frequencies;
@@ -517,6 +653,15 @@ class SpoonSoundApp {
         this.soundBtns.forEach(btn => btn.classList.remove('active'));
         const active = document.querySelector(`[data-sound="${sound}"]`);
         if (active) active.classList.add('active');
+        
+        // Update spoon container material class for visual styling
+        const spoonContainer = document.querySelector('.spoon-container');
+        if (spoonContainer) {
+            // Remove all material classes
+            spoonContainer.classList.remove('material-wooden-spoon', 'material-metal-spoon', 'material-plastic-spoon', 'material-ceramic-spoon');
+            // Add the new material class
+            spoonContainer.classList.add(`material-${sound}`);
+        }
     }
 
     async testMotionPermission() {

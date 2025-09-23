@@ -76,18 +76,20 @@ header::before {
 
 .title {
     font-family: 'Flavors', 'Archivo Black', 'Passion One', cursive;
-    white-space: norap;
+    white-space: nowrap;
     font-size: clamp(1.5rem, 6vw, 2.8rem);
     color: #FFF8DC;
     text-shadow: 
         2px 2px 0px #8B4513, 
         4px 4px 0px rgba(0,0,0,0.4),
         0 0 10px rgba(255, 248, 220, 0.3);
-    margin-bottom: 10px;
     position: relative;
     z-index: 1;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .subtitle {
@@ -131,8 +133,8 @@ header::before {
     position: absolute;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%) rotate(-15deg);
-    transition: transform 0.15s ease;
+    transform: translate(-50%, -50%) rotate(-25deg) translateX(-25px);
+    transition: transform 0.15s ease, filter 0.3s ease;
     filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     z-index: 1;
 }
@@ -142,10 +144,48 @@ header::before {
     position: absolute;
     left: 50%;
     top: 50%;
-    transform: translate(-50%, -50%) rotate(15deg);
-    transition: transform 0.15s ease;
+    transform: translate(-50%, -50%) rotate(25deg) translateX(25px);
+    transition: transform 0.15s ease, filter 0.3s ease;
     filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     z-index: 1;
+}
+
+/* Material-specific spoon coloring */
+.spoon-container.material-wooden-spoon .spoon-left,
+.spoon-container.material-wooden-spoon .spoon-right {
+    filter: 
+        drop-shadow(2px 2px 4px rgba(0,0,0,0.3))
+        hue-rotate(30deg) 
+        saturate(1.2) 
+        brightness(0.9)
+        sepia(0.3);
+}
+
+.spoon-container.material-metal-spoon .spoon-left,
+.spoon-container.material-metal-spoon .spoon-right {
+    filter: 
+        drop-shadow(2px 2px 4px rgba(0,0,0,0.3))
+        brightness(1.1)
+        contrast(1.1);
+}
+
+.spoon-container.material-plastic-spoon .spoon-left,
+.spoon-container.material-plastic-spoon .spoon-right {
+    filter: 
+        drop-shadow(2px 2px 4px rgba(0,0,0,0.3))
+        brightness(1.3)
+        saturate(0.7)
+        hue-rotate(-10deg);
+}
+
+.spoon-container.material-ceramic-spoon .spoon-left,
+.spoon-container.material-ceramic-spoon .spoon-right {
+    filter: 
+        drop-shadow(2px 2px 4px rgba(0,0,0,0.3))
+        brightness(1.1)
+        saturate(0.8)
+        hue-rotate(15deg)
+        sepia(0.1);
 }
 
 .spoon:hover {
@@ -173,38 +213,54 @@ header::before {
 
 @keyframes leftSpoonClap {
     0% { 
-        transform: translate(-50%, -50%) rotate(-15deg) translateX(-10px); 
+        transform: translate(-50%, -50%) rotate(-25deg) translateX(-25px); 
         filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     }
-    30% { 
-        transform: translate(-50%, -50%) rotate(-2deg) translateX(5px); 
-        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));
+    20% { 
+        transform: translate(-50%, -50%) rotate(-5deg) translateX(-5px); 
+        filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.4));
+    }
+    40% { 
+        transform: translate(-50%, -50%) rotate(0deg) translateX(0px); 
+        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.6));
     }
     60% { 
-        transform: translate(-50%, -50%) rotate(-2deg) translateX(5px); 
-        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));
+        transform: translate(-50%, -50%) rotate(0deg) translateX(0px); 
+        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.6));
+    }
+    80% { 
+        transform: translate(-50%, -50%) rotate(-5deg) translateX(-5px); 
+        filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.4));
     }
     100% { 
-        transform: translate(-50%, -50%) rotate(-15deg) translateX(-10px); 
+        transform: translate(-50%, -50%) rotate(-25deg) translateX(-25px); 
         filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     }
 }
 
 @keyframes rightSpoonClap {
     0% { 
-        transform: translate(-50%, -50%) rotate(15deg) translateX(10px); 
+        transform: translate(-50%, -50%) rotate(25deg) translateX(25px); 
         filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     }
-    30% { 
-        transform: translate(-50%, -50%) rotate(2deg) translateX(-5px); 
-        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));
+    20% { 
+        transform: translate(-50%, -50%) rotate(5deg) translateX(5px); 
+        filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.4));
+    }
+    40% { 
+        transform: translate(-50%, -50%) rotate(0deg) translateX(0px); 
+        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.6));
     }
     60% { 
-        transform: translate(-50%, -50%) rotate(2deg) translateX(-5px); 
-        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));
+        transform: translate(-50%, -50%) rotate(0deg) translateX(0px); 
+        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.6));
+    }
+    80% { 
+        transform: translate(-50%, -50%) rotate(5deg) translateX(5px); 
+        filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.4));
     }
     100% { 
-        transform: translate(-50%, -50%) rotate(15deg) translateX(10px); 
+        transform: translate(-50%, -50%) rotate(25deg) translateX(25px); 
         filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
     }
 }
@@ -451,6 +507,54 @@ header::before {
     text-align: right;
 }
 
+.tempo-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+}
+
+.tempo-slider {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.tempo-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    border: 2px solid #FFF8DC;
+}
+
+.tempo-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    border: 2px solid #FFF8DC;
+}
+
+.tempo-value {
+    font-weight: bold;
+    color: #D4AF37;
+    min-width: 50px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
 .instructions {
     margin: 30px 0;
     background: rgba(101, 67, 33, 0.12);
@@ -501,21 +605,20 @@ header::before {
     text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
 }
 
-.spoon-info {
+.spoon-types {
     margin: 30px 0;
     background: rgba(101, 67, 33, 0.12);
-    padding: 25px;
+    padding: 30px;
     border-radius: 20px;
     backdrop-filter: blur(10px);
     border: 2px solid rgba(101, 67, 33, 0.25);
     box-shadow: 
         inset 0 1px 0 rgba(255, 255, 255, 0.08),
         0 4px 20px rgba(0, 0, 0, 0.15);
-    text-align: left;
     position: relative;
 }
 
-.spoon-info::before {
+.spoon-types::before {
     content: '';
     position: absolute;
     top: 0;
@@ -528,36 +631,178 @@ header::before {
     pointer-events: none;
 }
 
-.spoon-info h3 {
-    margin-bottom: 15px;
+.spoon-types h3 {
+    margin-bottom: 25px;
     color: #F5DEB3;
     text-align: center;
     font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     position: relative;
     z-index: 1;
 }
 
-.spoon-descriptions {
+.spoon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
     position: relative;
     z-index: 1;
 }
 
-.spoon-desc {
-    margin: 12px 0;
-    color: #F5DEB3;
-    line-height: 1.5;
-    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
-    padding: 10px;
-    background: rgba(107, 91, 71, 0.08);
-    border-radius: 10px;
-    border: 1px solid rgba(107, 91, 71, 0.15);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+.spoon-card {
+    background: rgba(107, 91, 71, 0.15);
+    border-radius: 16px;
+    padding: 20px;
+    border: 2px solid rgba(107, 91, 71, 0.25);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
 }
 
-.spoon-desc strong {
+.spoon-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+    border-radius: 16px;
+    pointer-events: none;
+}
+
+.spoon-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 8px 25px rgba(0, 0, 0, 0.2);
+    border-color: rgba(107, 91, 71, 0.4);
+}
+
+.spoon-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+    position: relative;
+    z-index: 1;
+}
+
+.spoon-name {
+    font-size: 1.1rem;
+    font-weight: bold;
     color: #FFD700;
+    margin-bottom: 8px;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 1;
+}
+
+.spoon-description {
+    font-size: 0.9rem;
+    color: #F5DEB3;
+    line-height: 1.4;
+    margin-bottom: 12px;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 1;
+}
+
+.spoon-genre {
+    font-size: 0.8rem;
+    color: #D4AF37;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 8px;
+    background: rgba(212, 175, 55, 0.15);
+    border-radius: 8px;
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+}
+
+/* Material-specific card styling */
+.spoon-card.wooden {
+    border-color: rgba(139, 69, 19, 0.3);
+}
+
+.spoon-card.wooden:hover {
+    border-color: rgba(139, 69, 19, 0.5);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 8px 25px rgba(139, 69, 19, 0.2);
+}
+
+.spoon-card.wooden .spoon-icon {
+    filter: 
+        drop-shadow(2px 2px 4px rgba(0,0,0,0.3))
+        hue-rotate(30deg) 
+        saturate(1.2) 
+        brightness(0.9)
+        sepia(0.3);
+}
+
+.spoon-card.metal {
+    border-color: rgba(169, 169, 169, 0.3);
+}
+
+.spoon-card.metal:hover {
+    border-color: rgba(169, 169, 169, 0.5);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 8px 25px rgba(169, 169, 169, 0.2);
+}
+
+.spoon-card.metal .spoon-icon {
+    filter: 
+        drop-shadow(2px 2px 4px rgba(0,0,0,0.3))
+        brightness(1.1)
+        contrast(1.1);
+}
+
+.spoon-card.plastic {
+    border-color: rgba(220, 220, 220, 0.3);
+}
+
+.spoon-card.plastic:hover {
+    border-color: rgba(220, 220, 220, 0.5);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 8px 25px rgba(220, 220, 220, 0.2);
+}
+
+.spoon-card.plastic .spoon-icon {
+    filter: 
+        drop-shadow(2px 2px 4px rgba(0,0,0,0.3))
+        brightness(1.3)
+        saturate(0.7)
+        hue-rotate(-10deg);
+}
+
+.spoon-card.ceramic {
+    border-color: rgba(160, 82, 45, 0.3);
+}
+
+.spoon-card.ceramic:hover {
+    border-color: rgba(160, 82, 45, 0.5);
+    box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.15),
+        0 8px 25px rgba(160, 82, 45, 0.2);
+}
+
+.spoon-card.ceramic .spoon-icon {
+    filter: 
+        drop-shadow(2px 2px 4px rgba(0,0,0,0.3))
+        brightness(1.1)
+        saturate(0.8)
+        hue-rotate(15deg)
+        sepia(0.1);
 }
 
 @media (max-width: 768px) {
@@ -573,6 +818,27 @@ header::before {
     .spoon {
         width: 280px;
         height: 280px;
+    }
+    
+    .spoon-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .spoon-card {
+        padding: 18px;
+    }
+    
+    .spoon-icon {
+        font-size: 2.2rem;
+    }
+    
+    .spoon-name {
+        font-size: 1rem;
+    }
+    
+    .spoon-description {
+        font-size: 0.85rem;
     }
 }
 
@@ -601,6 +867,35 @@ header::before {
     .progress-bar {
         margin: 0;
         width: 100%;
+        order: 2;
+    }
+    
+    .value {
+        order: 3;
+        text-align: center;
+        margin-top: 5px;
+    }
+    
+    .label {
+        order: 1;
+        margin-bottom: 5px;
+    }
+    
+    .tempo-controls {
+        flex-direction: column;
+        gap: 10px;
+        order: 2;
+    }
+    
+    .tempo-slider {
+        order: 1;
+        width: 100%;
+    }
+    
+    .tempo-value {
+        order: 2;
+        text-align: center;
+        margin-top: 5px;
     }
 }
 
@@ -641,5 +936,41 @@ header::before {
     .spoon {
         width: 250px;
         height: 250px;
+    }
+    
+    .spoon-types {
+        padding: 20px;
+    }
+    
+    .spoon-types h3 {
+        font-size: 1.2rem;
+    }
+    
+    .spoon-grid {
+        gap: 12px;
+    }
+    
+    .spoon-card {
+        padding: 15px;
+    }
+    
+    .spoon-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    
+    .spoon-name {
+        font-size: 0.95rem;
+        margin-bottom: 6px;
+    }
+    
+    .spoon-description {
+        font-size: 0.8rem;
+        margin-bottom: 10px;
+    }
+    
+    .spoon-genre {
+        font-size: 0.75rem;
+        padding: 3px 6px;
     }
 }
