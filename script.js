@@ -132,22 +132,41 @@ class SpoonSoundApp {
                 await this.audioContext.resume();
             }
 
-            // Motion permission (iOS) or just attach (Android/desktop)
+            // Enhanced motion permission handling based on working test page
+            if (!window.DeviceMotionEvent) {
+                console.log('❌ DeviceMotionEvent not supported - using manual mode');
+                this.manualMode = true;
+                return;
+            }
+
+            // Check if we need to request permission (iOS)
             if (typeof DeviceMotionEvent.requestPermission === 'function') {
                 try {
+                    console.log('📱 Requesting motion permission...');
                     const permission = await DeviceMotionEvent.requestPermission();
+                    console.log('Motion permission result:', permission);
+                    
                     if (permission === 'granted') {
-                        window.addEventListener('devicemotion', this._onDeviceMotion, { passive: true });
-                        console.log('✅ Motion permission granted');
+                        // Permission granted - add motion listener
+                        window.addEventListener('devicemotion', (e) => this.handleMotion(e), { passive: true });
+                        console.log('✅ Motion permission granted! Shake your phone to play shaki spoons!');
                     } else {
-                        console.log('ℹ️ Motion permission denied - tap to play');
+                        console.log('❌ Motion permission denied - you can still tap to play sounds');
                     }
-                } catch (err) {
-                    console.log('❌ Motion permission error - tap to play');
+                } catch (error) {
+                    console.error('Error requesting motion permission:', error);
+                    console.log('❌ Motion permission error - you can still tap to play sounds');
                 }
             } else {
-                window.addEventListener('devicemotion', this._onDeviceMotion, { passive: true });
-                console.log('✅ Motion detection enabled');
+                // No permission request needed (Android, desktop) - try direct access
+                try {
+                    console.log('📱 No permission request needed - trying direct motion access');
+                    window.addEventListener('devicemotion', (e) => this.handleMotion(e), { passive: true });
+                    console.log('✅ Motion detection active! Shake your phone to play shaki spoons!');
+                } catch (error) {
+                    console.error('Error enabling motion detection:', error);
+                    console.log('❌ Motion detection failed - you can still tap to play sounds');
+                }
             }
         } catch (error) {
             console.error('Error starting app:', error);
@@ -159,7 +178,7 @@ class SpoonSoundApp {
         this.startBtn.disabled = false;
         this.stopBtn.disabled = true;
 
-        window.removeEventListener('devicemotion', this._onDeviceMotion);
+        window.removeEventListener('devicemotion', this.handleMotion);
 
         if (this.audioContext) {
             this.audioContext.close();
@@ -173,8 +192,18 @@ class SpoonSoundApp {
     handleMotion(event) {
         if (!this.isListening) return;
 
+        // Debug: Log first few motion events to verify detection is working
+        if (!this.motionDebugCount) this.motionDebugCount = 0;
+        if (this.motionDebugCount < 3) {
+            console.log(`Motion event ${this.motionDebugCount + 1}:`, event);
+            this.motionDebugCount++;
+        }
+
         let acceleration = event.acceleration || event.accelerationIncludingGravity;
-        if (!acceleration) return;
+        if (!acceleration) {
+            console.log('No acceleration data in motion event');
+            return;
+        }
 
         const now = Date.now();
 
@@ -199,6 +228,7 @@ class SpoonSoundApp {
         // Gate rapid triggers
         const isSignificant = this.detectVigorousShake(totalDelta, now);
         if (isSignificant && (now - this.lastMotionTime) > this.motionCooldown) {
+            console.log(`🎵 Vigorous shake detected! Delta: ${totalDelta.toFixed(2)}, Threshold: ${this.motionThreshold}`);
             this.lastMotionTime = now;
             this.triggerSound();
         }
