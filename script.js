@@ -5,15 +5,16 @@ class SpoonSoundApp {
         this.volume = 1.0; // Fixed at 100% - uses device volume
         this.motionThreshold = 8.0; // Higher threshold for actual shake detection
         this.lastSoundTime = 0;
-        this.soundCooldown = 300; // Longer cooldown to prevent rapid triggers
+        this.soundCooldown = 100; // Shorter cooldown for fast rhythms
         this.permissionRequested = false;
         this.manualMode = false;
         
         // Motion detection variables
         this.lastAcceleration = { x: 0, y: 0, z: 0 };
         this.lastMotionTime = 0;
-        this.motionCooldown = 500; // Longer cooldown between shake detections
+        this.motionCooldown = 150; // Shorter cooldown for rapid shaking
         this.shakeHistory = []; // Track recent shake intensities
+        this.audioInstances = []; // Track active audio instances for overlapping
         
         // Spoon sound configurations optimized for realistic percussion
         this.sounds = {
@@ -254,7 +255,10 @@ class SpoonSoundApp {
         const isSignificantShake = this.detectVigorousShake(totalDelta, now);
         
         if (isSignificantShake && now - this.lastMotionTime > this.motionCooldown) {
-            console.log(`Vigorous shake detected! Delta: ${totalDelta.toFixed(2)}, Threshold: ${this.motionThreshold}`);
+            const timeSinceLastShake = now - this.lastMotionTime;
+            const isFastRhythm = timeSinceLastShake < 400; // Less than 400ms between shakes
+            
+            console.log(`Vigorous shake detected! Delta: ${totalDelta.toFixed(2)}, Threshold: ${this.motionThreshold}${isFastRhythm ? ' (Fast Rhythm!)' : ''}`);
             this.triggerSound();
             this.lastMotionTime = now;
         }
@@ -271,20 +275,24 @@ class SpoonSoundApp {
         // Require high intensity
         if (currentIntensity < this.motionThreshold) return false;
         
-        // Check for sustained shaking pattern
+        // Check for sustained shaking pattern (faster rhythm detection)
         const recentShakes = this.shakeHistory.filter(h => 
-            h.intensity > this.motionThreshold * 0.7 && 
-            timestamp - h.timestamp < 300
+            h.intensity > this.motionThreshold * 0.6 && 
+            timestamp - h.timestamp < 200 // Reduced from 300ms for faster detection
         );
         
-        // Require at least 2 significant shakes within 300ms for vigorous shake
-        if (recentShakes.length < 2) return false;
+        // Require at least 1-2 significant shakes within 200ms for vigorous shake
+        if (recentShakes.length < 1) return false;
         
-        // Calculate average intensity of recent shakes
-        const avgIntensity = recentShakes.reduce((sum, shake) => sum + shake.intensity, 0) / recentShakes.length;
-        
-        // Require sustained high intensity
-        return avgIntensity > this.motionThreshold * 0.8;
+        // For fast rhythms, allow single strong shakes or sustained moderate shakes
+        if (recentShakes.length === 1) {
+            // Single strong shake - allow if intensity is high enough
+            return recentShakes[0].intensity > this.motionThreshold * 1.2;
+        } else {
+            // Multiple shakes - calculate average intensity
+            const avgIntensity = recentShakes.reduce((sum, shake) => sum + shake.intensity, 0) / recentShakes.length;
+            return avgIntensity > this.motionThreshold * 0.7; // Lower threshold for rhythm playing
+        }
     }
     
     updateMotionDisplay(magnitude) {
@@ -319,14 +327,28 @@ class SpoonSoundApp {
         const soundConfig = this.sounds[this.currentSound];
         const now = this.audioContext.currentTime;
         
-        // Create realistic spoon percussion sound
+        // Create realistic spoon percussion sound (allows overlapping)
         this.createSpoonPercussion(soundConfig, now);
         
-        // Add subtle tonal component for material character
+        // Add subtle tonal component for material character (allows overlapping)
         this.createMaterialTone(soundConfig, now);
         
         // Update display
         this.lastSoundDisplay.textContent = `${soundConfig.name} - Percussion`;
+        
+        // Clean up old audio instances to prevent memory leaks
+        this.cleanupAudioInstances();
+    }
+    
+    cleanupAudioInstances() {
+        // Remove references to finished audio instances
+        this.audioInstances = this.audioInstances.filter(instance => {
+            try {
+                return instance.contextTime < this.audioContext.currentTime + 2; // Keep instances from last 2 seconds
+            } catch (e) {
+                return false; // Remove if error accessing
+            }
+        });
     }
     
     createSpoonPercussion(soundConfig, startTime) {
@@ -373,6 +395,12 @@ class SpoonSoundApp {
             // Play the burst
             noiseSource.start(burstTime);
             noiseSource.stop(burstTime + burstDuration);
+            
+            // Track audio instance for cleanup
+            this.audioInstances.push({
+                source: noiseSource,
+                contextTime: burstTime + burstDuration
+            });
         }
     }
     
@@ -409,6 +437,12 @@ class SpoonSoundApp {
         
         oscillator.start(startTime);
         oscillator.stop(startTime + toneDuration);
+        
+        // Track tonal instance for cleanup
+        this.audioInstances.push({
+            source: oscillator,
+            contextTime: startTime + toneDuration
+        });
     }
     
     
