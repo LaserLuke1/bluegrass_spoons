@@ -12,7 +12,7 @@ class SpoonSoundApp {
         // Motion detection variables
         this.lastAcceleration = { x: 0, y: 0, z: 0 };
         this.lastMotionTime = 0;
-        this.motionCooldown = 80; // Much shorter cooldown for rapid shaking and quick tapping
+        this.motionCooldown = 120; // Balanced cooldown for responsive but not overwhelming detection
         this.shakeHistory = []; // Track recent shake intensities
         this.audioInstances = []; // Track active audio instances for overlapping
         
@@ -277,21 +277,21 @@ class SpoonSoundApp {
         
         // Check for sustained shaking pattern (faster rhythm detection)
         const recentShakes = this.shakeHistory.filter(h => 
-            h.intensity > this.motionThreshold * 0.5 && 
-            timestamp - h.timestamp < 150 // Even faster detection for quick tapping
+            h.intensity > this.motionThreshold * 0.6 && 
+            timestamp - h.timestamp < 200 // Balanced detection window
         );
         
-        // Require at least 1 significant shake within 150ms for vigorous shake
+        // Require at least 1 significant shake within 200ms for vigorous shake
         if (recentShakes.length < 1) return false;
         
         // Enhanced detection for quick tapping patterns
         if (recentShakes.length === 1) {
-            // Single shake - allow if intensity is high enough (lowered threshold for responsiveness)
-            return recentShakes[0].intensity > this.motionThreshold * 1.0;
+            // Single shake - allow if intensity is high enough
+            return recentShakes[0].intensity > this.motionThreshold * 1.1;
         } else {
             // Multiple shakes - calculate average intensity with lower threshold for quick tapping
             const avgIntensity = recentShakes.reduce((sum, shake) => sum + shake.intensity, 0) / recentShakes.length;
-            return avgIntensity > this.motionThreshold * 0.6; // Even lower threshold for rhythm playing
+            return avgIntensity > this.motionThreshold * 0.7; // Balanced threshold for rhythm playing
         }
     }
     
@@ -366,7 +366,7 @@ class SpoonSoundApp {
         const avgTimeBetween = this.calculateAverageTimeBetween(recentShakes);
         
         return {
-            isFastRhythm: timeSinceLastShake < 250, // Faster detection for quick tapping
+            isFastRhythm: timeSinceLastShake < 300, // Balanced detection for quick tapping
             avgTimeBetween: avgTimeBetween,
             intensity: this.getCurrentShakeIntensity(),
             shakeCount: recentShakes.length
