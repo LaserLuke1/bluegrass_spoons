@@ -153,30 +153,60 @@ header::before {
 }
 
 .spoon.active {
-    animation: spoonClap 0.15s ease-in-out;
+    animation: spoonClap 0.2s ease-in-out;
 }
 
 .spoon.active .spoon-left {
-    animation: leftSpoonClink 0.15s ease-in-out;
+    animation: leftSpoonClap 0.2s ease-in-out;
 }
 
 .spoon.active .spoon-right {
-    animation: rightSpoonClink 0.15s ease-in-out;
+    animation: rightSpoonClap 0.2s ease-in-out;
 }
 
 @keyframes spoonClap {
-    0%, 100% { transform: scale(1.05); }
-    50% { transform: scale(1.08); }
+    0% { transform: scale(1.05); }
+    30% { transform: scale(1.15); }
+    60% { transform: scale(1.12); }
+    100% { transform: scale(1.05); }
 }
 
-@keyframes leftSpoonClink {
-    0%, 100% { transform: translate(-50%, -50%) rotate(-15deg); }
-    50% { transform: translate(-50%, -50%) rotate(-5deg); }
+@keyframes leftSpoonClap {
+    0% { 
+        transform: translate(-50%, -50%) rotate(-15deg) translateX(-10px); 
+        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+    }
+    30% { 
+        transform: translate(-50%, -50%) rotate(-2deg) translateX(5px); 
+        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));
+    }
+    60% { 
+        transform: translate(-50%, -50%) rotate(-2deg) translateX(5px); 
+        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));
+    }
+    100% { 
+        transform: translate(-50%, -50%) rotate(-15deg) translateX(-10px); 
+        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+    }
 }
 
-@keyframes rightSpoonClink {
-    0%, 100% { transform: translate(-50%, -50%) rotate(15deg); }
-    50% { transform: translate(-50%, -50%) rotate(5deg); }
+@keyframes rightSpoonClap {
+    0% { 
+        transform: translate(-50%, -50%) rotate(15deg) translateX(10px); 
+        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+    }
+    30% { 
+        transform: translate(-50%, -50%) rotate(2deg) translateX(-5px); 
+        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));
+    }
+    60% { 
+        transform: translate(-50%, -50%) rotate(2deg) translateX(-5px); 
+        filter: drop-shadow(4px 4px 8px rgba(0,0,0,0.5));
+    }
+    100% { 
+        transform: translate(-50%, -50%) rotate(15deg) translateX(10px); 
+        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+    }
 }
 
 .sound-indicator {

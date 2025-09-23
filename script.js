@@ -59,6 +59,7 @@ class SpoonSoundApp {
     initializeElements() {
         this.startBtn = document.getElementById('startBtn');
         this.stopBtn = document.getElementById('stopBtn');
+        this.motionTestBtn = document.getElementById('motionTestBtn');
         this.spoon = document.getElementById('spoon');
         this.soundIndicator = document.getElementById('soundIndicator');
         this.soundBtns = document.querySelectorAll('.sound-btn');
@@ -70,6 +71,7 @@ class SpoonSoundApp {
     setupEventListeners() {
         this.startBtn.addEventListener('click', () => this.startMotionDetection());
         this.stopBtn.addEventListener('click', () => this.stopMotionDetection());
+        this.motionTestBtn.addEventListener('click', () => this.testMotionPermission());
 
         this.soundBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -515,6 +517,74 @@ class SpoonSoundApp {
         this.soundBtns.forEach(btn => btn.classList.remove('active'));
         const active = document.querySelector(`[data-sound="${sound}"]`);
         if (active) active.classList.add('active');
+    }
+
+    async testMotionPermission() {
+        console.log('🧪 Testing motion permission...');
+        
+        if (!window.DeviceMotionEvent) {
+            console.log('❌ DeviceMotionEvent not supported');
+            alert('Motion sensors not supported on this device');
+            return;
+        }
+
+        // Check if we need to request permission (iOS)
+        if (typeof DeviceMotionEvent.requestPermission === 'function') {
+            try {
+                console.log('📱 Requesting motion permission...');
+                const permission = await DeviceMotionEvent.requestPermission();
+                console.log('Motion permission result:', permission);
+                
+                if (permission === 'granted') {
+                    console.log('✅ Motion permission granted!');
+                    alert('✅ Motion permission granted! You can now use the main app.');
+                } else {
+                    console.log('❌ Motion permission denied');
+                    alert('❌ Motion permission denied. You can still tap to play sounds.');
+                }
+            } catch (error) {
+                console.error('Error requesting motion permission:', error);
+                alert('❌ Motion permission error. You can still tap to play sounds.');
+            }
+        } else {
+            // No permission request needed (Android, desktop)
+            console.log('📱 No permission request needed - testing motion detection');
+            
+            let motionCount = 0;
+            const maxMotions = 3;
+            
+            function handleTestMotion(event) {
+                motionCount++;
+                const acc = event.acceleration || event.accelerationIncludingGravity;
+                if (acc) {
+                    const magnitude = Math.sqrt(acc.x*acc.x + acc.y*acc.y + acc.z*acc.z);
+                    console.log(`Motion ${motionCount}: magnitude = ${magnitude.toFixed(2)}`);
+                }
+                
+                if (motionCount >= maxMotions) {
+                    window.removeEventListener('devicemotion', handleTestMotion);
+                    console.log(`✅ Motion detection working! Captured ${motionCount} events`);
+                    alert(`✅ Motion detection working! Captured ${motionCount} motion events. You can now use the main app.`);
+                }
+            }
+            
+            try {
+                window.addEventListener('devicemotion', handleTestMotion, { passive: true });
+                alert('📱 Testing motion detection... Shake your device! (3 events max)');
+                
+                setTimeout(() => {
+                    window.removeEventListener('devicemotion', handleTestMotion);
+                    if (motionCount === 0) {
+                        console.log('❌ No motion detected');
+                        alert('❌ No motion detected. Check if motion sensors are enabled in your device settings.');
+                    }
+                }, 5000); // 5 second timeout
+                
+            } catch (error) {
+                console.error('Motion detection error:', error);
+                alert('❌ Motion detection failed. You can still tap to play sounds.');
+            }
+        }
     }
 }
 
