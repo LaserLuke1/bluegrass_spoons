@@ -3,11 +3,16 @@ class SpoonSoundApp {
         this.isListening = false;
         this.currentSound = 'wooden-spoon';
         this.volume = 1.0; // Fixed at 100% - uses device volume
-        this.motionThreshold = 15;
+        this.motionThreshold = 2.5; // Lower threshold for shake detection
         this.lastSoundTime = 0;
-        this.soundCooldown = 50; // Very short for realistic percussion response
+        this.soundCooldown = 200; // Slightly longer cooldown for motion
         this.permissionRequested = false;
         this.manualMode = false;
+        
+        // Motion detection variables
+        this.lastAcceleration = { x: 0, y: 0, z: 0 };
+        this.lastMotionTime = 0;
+        this.motionCooldown = 300; // Prevent too frequent motion triggers
         
         // Spoon sound configurations optimized for realistic percussion
         this.sounds = {
@@ -100,8 +105,19 @@ class SpoonSoundApp {
             return;
         }
         
-        if (this.isIOS() && typeof DeviceMotionEvent.requestPermission === 'function') {
-            this.showMessage('iOS detected - tap anywhere to play spoon sounds', 'info');
+        // Check iOS and permission requirements
+        if (this.isIOS()) {
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                this.showMessage('📱 iOS detected - motion permission will be requested when you start the app', 'info');
+                console.log('iOS detected - motion permission required');
+            } else {
+                this.showMessage('📱 iOS detected - motion sensors should work automatically', 'info');
+            }
+        }
+        
+        // Check if we're on HTTPS (required for motion sensors)
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+            this.showMessage('⚠️ Motion sensors require HTTPS - use manual tapping on HTTP', 'warning');
         }
     }
     
@@ -110,8 +126,18 @@ class SpoonSoundApp {
     }
     
     showMessage(message, type = 'info') {
-        // Disabled to prevent white flash effect
-        console.log(`Message (${type}): ${message}`);
+        // Enhanced console logging with emojis for better debugging
+        const emoji = {
+            'info': 'ℹ️',
+            'success': '✅',
+            'warning': '⚠️',
+            'error': '❌'
+        }[type] || 'ℹ️';
+        
+        console.log(`${emoji} ${type.toUpperCase()}: ${message}`);
+        
+        // Optional: Could add visual notifications here in the future
+        // For now, console logging is sufficient for debugging
     }
     
     async startMotionDetection() {
@@ -129,26 +155,36 @@ class SpoonSoundApp {
                 await this.audioContext.resume();
             }
             
-            // Try to request motion permission, but don't require it
+            // Request motion permission on iOS
             if (typeof DeviceMotionEvent.requestPermission === 'function') {
                 try {
+                    console.log('Requesting motion permission...');
+                    this.showMessage('📱 Requesting motion sensor access...', 'info');
+                    
                     const permission = await DeviceMotionEvent.requestPermission();
+                    console.log('Motion permission result:', permission);
+                    
                     if (permission === 'granted') {
                         window.addEventListener('devicemotion', (e) => this.handleMotion(e), { passive: true });
-                        this.showMessage('Motion detection active! Shake or tap to play spoon sounds', 'success');
+                        this.showMessage('🎵 Motion permission granted! Shake your phone to play bluegrass spoons!', 'success');
+                        console.log('Motion permission granted - shake detection enabled');
                     } else {
-                        this.showMessage('Motion blocked - tap anywhere to play spoon sounds!', 'info');
+                        this.showMessage('❌ Motion permission denied - you can still tap to play sounds', 'info');
+                        console.log('Motion permission denied');
                     }
                 } catch (error) {
-                    this.showMessage('Motion blocked - tap anywhere to play spoon sounds!', 'info');
+                    console.error('Error requesting motion permission:', error);
+                    this.showMessage('❌ Motion permission error - you can still tap to play sounds', 'info');
                 }
             } else {
-                // Try to add motion listener without permission request
+                // Try to add motion listener without permission request (Android, desktop)
                 try {
                     window.addEventListener('devicemotion', (e) => this.handleMotion(e), { passive: true });
-                    this.showMessage('Motion detection active! Shake or tap to play spoon sounds', 'success');
+                    this.showMessage('🎵 Motion detection active! Shake your phone to play bluegrass spoons!', 'success');
+                    console.log('Motion detection enabled without permission request');
                 } catch (error) {
-                    this.showMessage('Motion blocked - tap anywhere to play spoon sounds!', 'info');
+                    console.error('Error enabling motion detection:', error);
+                    this.showMessage('❌ Motion detection failed - you can still tap to play sounds', 'info');
                 }
             }
             
@@ -179,26 +215,53 @@ class SpoonSoundApp {
     handleMotion(event) {
         if (!this.isListening) return;
         
-        const acceleration = event.accelerationIncludingGravity;
+        // Try acceleration without gravity first, fallback to with gravity
+        let acceleration = event.acceleration;
+        if (!acceleration) {
+            acceleration = event.accelerationIncludingGravity;
+        }
         if (!acceleration) return;
         
-        const magnitude = Math.sqrt(
+        const now = Date.now();
+        
+        // Calculate change in acceleration (this detects shakes better)
+        const deltaX = Math.abs(acceleration.x - this.lastAcceleration.x);
+        const deltaY = Math.abs(acceleration.y - this.lastAcceleration.y);
+        const deltaZ = Math.abs(acceleration.z - this.lastAcceleration.z);
+        
+        // Calculate total acceleration change
+        const totalDelta = deltaX + deltaY + deltaZ;
+        
+        // Update motion display with current acceleration magnitude
+        const currentMagnitude = Math.sqrt(
             acceleration.x * acceleration.x +
             acceleration.y * acceleration.y +
             acceleration.z * acceleration.z
         );
+        this.updateMotionDisplay(currentMagnitude);
         
-        this.updateMotionDisplay(magnitude);
-        
-        if (magnitude > this.motionThreshold) {
+        // Check if this is a significant shake (rapid change in acceleration)
+        if (totalDelta > this.motionThreshold && 
+            now - this.lastMotionTime > this.motionCooldown) {
+            
+            console.log(`Shake detected! Delta: ${totalDelta.toFixed(2)}, Threshold: ${this.motionThreshold}`);
             this.triggerSound();
+            this.lastMotionTime = now;
         }
+        
+        // Store current acceleration for next comparison
+        this.lastAcceleration = {
+            x: acceleration.x,
+            y: acceleration.y,
+            z: acceleration.z
+        };
     }
     
     updateMotionDisplay(magnitude) {
-        const percentage = Math.min((magnitude / 50) * 100, 100);
+        // Scale for better visual feedback (shake detection range)
+        const percentage = Math.min((magnitude / 10) * 100, 100);
         this.motionProgress.style.width = percentage + '%';
-        this.motionValue.textContent = Math.round(magnitude);
+        this.motionValue.textContent = magnitude.toFixed(1);
     }
     
     triggerSound() {
