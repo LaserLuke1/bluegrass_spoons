@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motion Permission Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            background: #007AFF;
+            color: white;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: #f8f9fa;
+            border-left: 4px solid #007AFF;
+        }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .warning { border-left-color: #ffc107; background: #fff3cd; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Motion Permission Test</h1>
+        <p>This tests motion sensor access on your device.</p>
+        
+        <button onclick="testMotionPermission()">Test Motion Permission</button>
+        <button onclick="testMotionDetection()">Test Motion Detection</button>
+        <button onclick="testDirectMotion()">Test Direct Motion Access</button>
+        <button onclick="clearLog()">Clear Log</button>
+        
+        <div id="status"></div>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        function addStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.textContent = message;
+            status.appendChild(div);
+        }
+
+        function addLog(message) {
+            const log = document.getElementById('log');
+            const div = document.createElement('div');
+            div.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            log.appendChild(div);
+        }
+
+        function clearLog() {
+            document.getElementById('status').innerHTML = '';
+            document.getElementById('log').innerHTML = '';
+        }
+
+        async function testMotionPermission() {
+            addLog('Testing motion permission...');
+            
+            if (!window.DeviceMotionEvent) {
+                addStatus('❌ DeviceMotionEvent not supported', 'error');
+                return;
+            }
+
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                addLog('Permission request function found - this is iOS');
+                try {
+                    addStatus('📱 Requesting motion permission...', 'warning');
+                    const permission = await DeviceMotionEvent.requestPermission();
+                    addLog(`Permission result: ${permission}`);
+                    
+                    if (permission === 'granted') {
+                        addStatus('✅ Motion permission granted!', 'success');
+                    } else {
+                        addStatus('❌ Motion permission denied', 'error');
+                    }
+                } catch (error) {
+                    addLog(`Permission error: ${error.message}`);
+                    addStatus('❌ Permission request failed', 'error');
+                }
+            } else {
+                addLog('No permission request needed - likely Android or desktop');
+                addStatus('ℹ️ Motion sensors should work automatically', 'info');
+            }
+        }
+
+        function testMotionDetection() {
+            addLog('Testing motion detection...');
+            
+            let motionCount = 0;
+            const maxMotions = 5;
+            
+            function handleMotion(event) {
+                motionCount++;
+                const acc = event.acceleration || event.accelerationIncludingGravity;
+                if (acc) {
+                    const magnitude = Math.sqrt(acc.x*acc.x + acc.y*acc.y + acc.z*acc.z);
+                    addLog(`Motion ${motionCount}: magnitude = ${magnitude.toFixed(2)}`);
+                }
+                
+                if (motionCount >= maxMotions) {
+                    window.removeEventListener('devicemotion', handleMotion);
+                    addStatus(`✅ Motion detection working! Captured ${motionCount} events`, 'success');
+                }
+            }
+            
+            try {
+                window.addEventListener('devicemotion', handleMotion, { passive: true });
+                addStatus(`📱 Listening for motion... Shake your device! (${maxMotions} events max)`, 'warning');
+                
+                setTimeout(() => {
+                    window.removeEventListener('devicemotion', handleMotion);
+                    if (motionCount === 0) {
+                        addStatus('❌ No motion detected - check permissions', 'error');
+                    }
+                }, 10000); // 10 second timeout
+                
+            } catch (error) {
+                addLog(`Motion detection error: ${error.message}`);
+                addStatus('❌ Motion detection failed', 'error');
+            }
+        }
+
+        function testDirectMotion() {
+            addLog('Testing direct motion access without permission...');
+            
+            try {
+                let motionCount = 0;
+                const maxMotions = 3;
+                
+                function handleDirectMotion(event) {
+                    motionCount++;
+                    addLog(`Direct motion ${motionCount}: ${JSON.stringify(event.acceleration || event.accelerationIncludingGravity)}`);
+                    
+                    if (motionCount >= maxMotions) {
+                        window.removeEventListener('devicemotion', handleDirectMotion);
+                        addStatus('✅ Direct motion access working!', 'success');
+                    }
+                }
+                
+                window.addEventListener('devicemotion', handleDirectMotion, { passive: true });
+                addStatus('📱 Testing direct motion access... Move your device!', 'warning');
+                
+                setTimeout(() => {
+                    window.removeEventListener('devicemotion', handleDirectMotion);
+                    if (motionCount === 0) {
+                        addStatus('❌ No direct motion detected - permission may be required', 'error');
+                    }
+                }, 5000);
+                
+            } catch (error) {
+                addLog(`Direct motion error: ${error.message}`);
+                addStatus('❌ Direct motion access failed', 'error');
+            }
+        }
+
+        // Auto-detect platform and motion support
+        window.addEventListener('load', () => {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
+            const isHTTPS = location.protocol === 'https:' || location.hostname === 'localhost';
+            const hasDeviceMotion = !!window.DeviceMotionEvent;
+            const hasPermissionAPI = typeof DeviceMotionEvent.requestPermission === 'function';
+            
+            addLog(`Platform: ${isIOS ? 'iOS' : isAndroid ? 'Android' : 'Other'}`);
+            addLog(`HTTPS: ${isHTTPS ? 'Yes' : 'No'}`);
+            addLog(`DeviceMotionEvent: ${hasDeviceMotion ? 'Supported' : 'NOT SUPPORTED'}`);
+            addLog(`Permission API: ${hasPermissionAPI ? 'Available' : 'Not Available'}`);
+            addLog(`User Agent: ${navigator.userAgent}`);
+            
+            if (!isHTTPS) {
+                addStatus('⚠️ Motion sensors require HTTPS in production', 'warning');
+            }
+            
+            if (!hasDeviceMotion) {
+                addStatus('❌ DeviceMotionEvent not supported on this device/browser', 'error');
+            }
+            
+            if (isIOS && !hasPermissionAPI) {
+                addStatus('⚠️ iOS device but no permission API - may be older iOS version', 'warning');
+            }
+            
+            if (isIOS && hasPermissionAPI && !isHTTPS) {
+                addStatus('❌ iOS with permission API requires HTTPS for motion sensors', 'error');
+            }
+            
+            // Test motion event availability
+            try {
+                const testEvent = new DeviceMotionEvent('test');
+                addLog('DeviceMotionEvent constructor: Working');
+            } catch (e) {
+                addLog(`DeviceMotionEvent constructor: Failed - ${e.message}`);
+            }
+        });
+    </script>
+</body>
+</html>
