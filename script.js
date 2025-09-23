@@ -327,17 +327,60 @@ class SpoonSoundApp {
         const soundConfig = this.sounds[this.currentSound];
         const now = this.audioContext.currentTime;
         
-        // Create realistic spoon percussion sound (allows overlapping)
-        this.createSpoonPercussion(soundConfig, now);
+        // Calculate dynamic sound characteristics based on shake intensity and timing
+        const shakeIntensity = this.getCurrentShakeIntensity();
+        const rhythmContext = this.getRhythmContext();
         
-        // Add subtle tonal component for material character (allows overlapping)
-        this.createMaterialTone(soundConfig, now);
+        // Create varied spoon percussion sound based on intensity and rhythm
+        this.createVariedSpoonPercussion(soundConfig, now, shakeIntensity, rhythmContext);
         
-        // Update display
-        this.lastSoundDisplay.textContent = `${soundConfig.name} - Percussion`;
+        // Add varied tonal component for material character
+        this.createVariedMaterialTone(soundConfig, now, shakeIntensity, rhythmContext);
+        
+        // Update display with rhythm information
+        const rhythmInfo = rhythmContext.isFastRhythm ? ' (Fast Rhythm)' : '';
+        this.lastSoundDisplay.textContent = `${soundConfig.name} - ${rhythmContext.intensity}${rhythmInfo}`;
         
         // Clean up old audio instances to prevent memory leaks
         this.cleanupAudioInstances();
+    }
+    
+    getCurrentShakeIntensity() {
+        // Get the intensity of the most recent shake
+        if (this.shakeHistory.length === 0) return 'medium';
+        
+        const latestShake = this.shakeHistory[this.shakeHistory.length - 1];
+        const intensity = latestShake.intensity;
+        
+        if (intensity > this.motionThreshold * 1.5) return 'strong';
+        if (intensity > this.motionThreshold * 1.0) return 'medium';
+        return 'light';
+    }
+    
+    getRhythmContext() {
+        const now = Date.now();
+        const timeSinceLastShake = now - this.lastMotionTime;
+        
+        // Analyze recent shake pattern
+        const recentShakes = this.shakeHistory.filter(h => now - h.timestamp < 1000);
+        const avgTimeBetween = this.calculateAverageTimeBetween(recentShakes);
+        
+        return {
+            isFastRhythm: timeSinceLastShake < 300,
+            avgTimeBetween: avgTimeBetween,
+            intensity: this.getCurrentShakeIntensity(),
+            shakeCount: recentShakes.length
+        };
+    }
+    
+    calculateAverageTimeBetween(shakes) {
+        if (shakes.length < 2) return 1000; // Default to slow
+        
+        let totalTime = 0;
+        for (let i = 1; i < shakes.length; i++) {
+            totalTime += shakes[i].timestamp - shakes[i-1].timestamp;
+        }
+        return totalTime / (shakes.length - 1);
     }
     
     cleanupAudioInstances() {
@@ -351,13 +394,45 @@ class SpoonSoundApp {
         });
     }
     
-    createSpoonPercussion(soundConfig, startTime) {
-        // Create multiple noise bursts to simulate spoon collision
-        const numBursts = 2 + Math.random() * 2; // 2-4 bursts
+    createVariedSpoonPercussion(soundConfig, startTime, intensity, rhythmContext) {
+        // Create varied noise bursts based on intensity and rhythm
+        let numBursts, burstDuration, volumeMultiplier, filterVariation;
+        
+        // Adjust characteristics based on intensity
+        switch (intensity) {
+            case 'strong':
+                numBursts = 3 + Math.random() * 2; // 3-5 bursts
+                burstDuration = 0.08 + Math.random() * 0.04; // 80-120ms
+                volumeMultiplier = 1.2;
+                filterVariation = 1.5;
+                break;
+            case 'light':
+                numBursts = 1 + Math.random() * 2; // 1-3 bursts
+                burstDuration = 0.04 + Math.random() * 0.02; // 40-60ms
+                volumeMultiplier = 0.7;
+                filterVariation = 0.8;
+                break;
+            default: // medium
+                numBursts = 2 + Math.random() * 2; // 2-4 bursts
+                burstDuration = 0.06 + Math.random() * 0.03; // 60-90ms
+                volumeMultiplier = 1.0;
+                filterVariation = 1.0;
+        }
+        
+        // Adjust for rhythm context
+        if (rhythmContext.isFastRhythm) {
+            numBursts = Math.max(1, numBursts - 1); // Fewer bursts for fast rhythm
+            burstDuration *= 0.8; // Shorter duration for fast rhythm
+        }
+        
+        this.createSpoonPercussionBursts(soundConfig, startTime, numBursts, burstDuration, volumeMultiplier, filterVariation);
+    }
+    
+    createSpoonPercussionBursts(soundConfig, startTime, numBursts, baseDuration, volumeMultiplier, filterVariation) {
         
         for (let i = 0; i < numBursts; i++) {
             const burstTime = startTime + (i * 0.01); // Stagger bursts slightly
-            const burstDuration = 0.05 + Math.random() * 0.03; // 50-80ms per burst
+            const burstDuration = baseDuration * (0.8 + Math.random() * 0.4); // Vary duration around base
             
             // Create noise buffer for this burst
             const bufferSize = this.audioContext.sampleRate * burstDuration;
@@ -381,13 +456,15 @@ class SpoonSoundApp {
             noiseFilter.connect(noiseGain);
             noiseGain.connect(this.audioContext.destination);
             
-            // Filter settings based on spoon material
+            // Filter settings based on spoon material and intensity
             noiseFilter.type = 'bandpass';
-            noiseFilter.frequency.setValueAtTime(soundConfig.filterFreq, burstTime);
+            const filterFreq = soundConfig.filterFreq * filterVariation * (0.8 + Math.random() * 0.4);
+            noiseFilter.frequency.setValueAtTime(filterFreq, burstTime);
             noiseFilter.Q.setValueAtTime(1 + Math.random() * 2, burstTime);
             
-            // Volume envelope - sharp attack, quick decay
-            const burstVolume = this.volume * (0.3 + Math.random() * 0.2) * (1 - i * 0.3);
+            // Volume envelope - varies with intensity and burst position
+            const baseVolume = this.volume * (0.3 + Math.random() * 0.2) * volumeMultiplier;
+            const burstVolume = baseVolume * (1 - i * 0.2); // Gradual decay across bursts
             noiseGain.gain.setValueAtTime(0, burstTime);
             noiseGain.gain.linearRampToValueAtTime(burstVolume, burstTime + 0.001);
             noiseGain.gain.exponentialRampToValueAtTime(0.001, burstTime + burstDuration);
@@ -404,8 +481,8 @@ class SpoonSoundApp {
         }
     }
     
-    createMaterialTone(soundConfig, startTime) {
-        // Add subtle tonal component to distinguish materials
+    createVariedMaterialTone(soundConfig, startTime, intensity, rhythmContext) {
+        // Add varied tonal component based on intensity and rhythm
         const oscillator = this.audioContext.createOscillator();
         const gainNode = this.audioContext.createGain();
         const filter = this.audioContext.createBiquadFilter();
@@ -414,23 +491,57 @@ class SpoonSoundApp {
         filter.connect(gainNode);
         gainNode.connect(this.audioContext.destination);
         
-        // Very short tonal burst (10-20ms)
-        const toneDuration = 0.01 + Math.random() * 0.01;
+        // Vary tone duration based on intensity
+        let toneDuration, toneVolume, freqMultiplier;
         
-        // Random frequency within material range
+        switch (intensity) {
+            case 'strong':
+                toneDuration = 0.02 + Math.random() * 0.015; // 20-35ms
+                toneVolume = this.volume * 0.15;
+                freqMultiplier = 1.2;
+                break;
+            case 'light':
+                toneDuration = 0.008 + Math.random() * 0.007; // 8-15ms
+                toneVolume = this.volume * 0.05;
+                freqMultiplier = 0.9;
+                break;
+            default: // medium
+                toneDuration = 0.012 + Math.random() * 0.01; // 12-22ms
+                toneVolume = this.volume * 0.1;
+                freqMultiplier = 1.0;
+        }
+        
+        // Adjust for fast rhythm
+        if (rhythmContext.isFastRhythm) {
+            toneDuration *= 0.7;
+            toneVolume *= 0.8;
+        }
+        
+        // Select frequency based on intensity and rhythm
         const frequencies = soundConfig.frequencies;
-        const randomFreq = frequencies[Math.floor(Math.random() * frequencies.length)];
+        let selectedFreq;
         
-        oscillator.frequency.setValueAtTime(randomFreq, startTime);
+        if (intensity === 'strong') {
+            // Strong shakes favor lower frequencies for more impact
+            selectedFreq = frequencies[0] * freqMultiplier;
+        } else if (intensity === 'light') {
+            // Light shakes favor higher frequencies for crispness
+            selectedFreq = frequencies[frequencies.length - 1] * freqMultiplier;
+        } else {
+            // Medium shakes use random frequency
+            selectedFreq = frequencies[Math.floor(Math.random() * frequencies.length)] * freqMultiplier;
+        }
+        
+        oscillator.frequency.setValueAtTime(selectedFreq, startTime);
         oscillator.type = soundConfig.type;
         
-        // High-pass filter to remove low frequencies
+        // Vary filter based on intensity
         filter.type = 'highpass';
-        filter.frequency.setValueAtTime(soundConfig.filterFreq * 0.5, startTime);
-        filter.Q.setValueAtTime(1, startTime);
+        const filterFreq = soundConfig.filterFreq * 0.5 * freqMultiplier;
+        filter.frequency.setValueAtTime(filterFreq, startTime);
+        filter.Q.setValueAtTime(1 + (intensity === 'strong' ? 0.5 : 0), startTime);
         
-        // Very quiet tonal component
-        const toneVolume = this.volume * 0.1;
+        // Volume envelope
         gainNode.gain.setValueAtTime(0, startTime);
         gainNode.gain.linearRampToValueAtTime(toneVolume, startTime + 0.001);
         gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + toneDuration);
