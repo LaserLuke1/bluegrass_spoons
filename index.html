@@ -84,7 +84,7 @@
             <!-- Dub Delay -->
             <div class="pedal dub-delay">
                 <div class="pedal-header">
-                    <h4>Dub Delay (Roll Control)</h4>
+                    <h4>Dub Delay (Yaw Control)</h4>
                     <label class="toggle">
                         <input type="checkbox" id="dubDelayToggle">
                         <span class="toggle-slider"></span>
@@ -112,7 +112,7 @@
             <!-- Reverb -->
             <div class="pedal reverb">
                 <div class="pedal-header">
-                    <h4>Reverb</h4>
+                    <h4>Reverb (Roll Control)</h4>
                     <label class="toggle">
                         <input type="checkbox" id="reverbToggle">
                         <span class="toggle-slider"></span>
@@ -145,7 +145,7 @@
             <!-- Overdrive -->
             <div class="pedal overdrive">
                 <div class="pedal-header">
-                    <h4>Overdrive</h4>
+                    <h4>Overdrive (Pitch Control)</h4>
                     <label class="toggle">
                         <input type="checkbox" id="overdriveToggle">
                         <span class="toggle-slider"></span>
@@ -179,16 +179,18 @@
         <div class="orientation-display">
             <h3>Device Orientation</h3>
             <div class="orientation-info" id="orientationDisplay">
-                <div>Roll: 0° (natural: 0°, range: ±45°) → Delay Wet/Dry: 0%</div>
+                <div>Yaw: 0° → Delay Time: 250ms</div>
+                <div>Roll: 0° → Reverb Room: 0.8s</div>
+                <div>Pitch: 0° → Overdrive: 30%</div>
             </div>
             <div class="orientation-instructions">
-                <p><strong>Tilt your device left/right to control delay:</strong></p>
+                <p><strong>Rotate your device to control effects in real-time:</strong></p>
                 <ul>
-                    <li><strong>Natural hold (0°):</strong> 50% wet/dry mix</li>
-                    <li><strong>Tilt left (-45°):</strong> 0% wet (dry signal)</li>
-                    <li><strong>Tilt right (+45°):</strong> 100% wet (full delay)</li>
+                    <li><strong>Rotate left/right (Yaw):</strong> Controls delay time (250ms - 800ms)</li>
+                    <li><strong>Tilt left/right (Roll):</strong> Controls reverb room size (0.1s - 2.0s)</li>
+                    <li><strong>Tilt forward/back (Pitch):</strong> Controls overdrive amount (0% - 80%)</li>
                 </ul>
-                <p><em>Hold device naturally and tilt left/right within 45° to adjust delay intensity.</em></p>
+                <p><em>Hold device naturally and rotate within ±45° to adjust effect parameters. The sliders will move in real-time to show current values.</em></p>
             </div>
         </div>
 

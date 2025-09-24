@@ -101,6 +101,11 @@ class SpoonSoundApp {
         
         // Initialize default material styling
         this.selectSound(this.currentSound);
+        
+        // Initialize effects visual state (all effects start disabled)
+        this.updatePedalVisualState('dub-delay', false);
+        this.updatePedalVisualState('overdrive', false);
+        this.updatePedalVisualState('reverb', false);
     }
 
     initializeElements() {
@@ -675,13 +680,25 @@ class SpoonSoundApp {
     }
 
     updateEffectsFromOrientation(orientation) {
-        // Only use Roll (gamma) for practical real-world testing
-        // Roll controls delay wet/dry mix
-        // Natural phone holding position is ~0°, then ±45° from there
+        // Map orientation to effects parameters as described in instructions
+        // Roll (gamma): -90 to +90 degrees, controls reverb room size
+        // Yaw (alpha): 0 to 360 degrees, controls delay time  
+        // Pitch (beta): -180 to +180 degrees, controls overdrive amount
+        
+        // Roll controls reverb room size (0.1 to 2.0 seconds)
         const clampedRoll = Math.max(-45, Math.min(45, orientation.gamma));
-        // Convert -45 to +45 degrees to 0-1 wet/dry range
-        const normalizedRoll = (clampedRoll + 45) / 90;
-        this.effects.dubDelay.wetDryMix = Math.max(0, Math.min(1, normalizedRoll));
+        const normalizedRoll = (clampedRoll + 45) / 90; // 0 to 1
+        this.effects.reverb.roomSize = 0.1 + (normalizedRoll * 1.9); // 0.1 to 2.0
+        
+        // Yaw controls delay time (0.1 to 0.8 seconds)
+        const clampedYaw = Math.max(-45, Math.min(45, orientation.alpha));
+        const normalizedYaw = (clampedYaw + 45) / 90; // 0 to 1
+        this.effects.dubDelay.delayTime = 0.1 + (normalizedYaw * 0.7); // 0.1 to 0.8
+        
+        // Pitch controls overdrive amount (0 to 0.8)
+        const clampedPitch = Math.max(-45, Math.min(45, orientation.beta));
+        const normalizedPitch = (clampedPitch + 45) / 90; // 0 to 1
+        this.effects.overdrive.drive = normalizedPitch * 0.8; // 0 to 0.8
 
         // Update the effects chain with new parameters
         this.updateEffectsChain();
@@ -691,19 +708,57 @@ class SpoonSoundApp {
     }
 
     updateOrientationDisplay(orientation) {
-        // Update delay wet/dry display
-        const delayWetDryElement = document.getElementById('delayWetDryValue');
-        if (delayWetDryElement) {
-            delayWetDryElement.textContent = Math.round(this.effects.dubDelay.wetDryMix * 100) + '%';
+        // Update delay time slider position in real-time (controlled by Yaw)
+        const delayTimeSlider = document.getElementById('delayTime');
+        if (delayTimeSlider) {
+            delayTimeSlider.value = this.effects.dubDelay.delayTime.toFixed(2);
         }
 
-        // Update orientation display (if element exists) - only show roll control
+        // Update delay time display
+        const delayTimeElement = document.getElementById('delayTimeValue');
+        if (delayTimeElement) {
+            delayTimeElement.textContent = Math.round(this.effects.dubDelay.delayTime * 1000) + 'ms';
+        }
+
+        // Update reverb room size slider position in real-time (controlled by Roll)
+        const reverbRoomSizeSlider = document.getElementById('reverbRoomSize');
+        if (reverbRoomSizeSlider) {
+            reverbRoomSizeSlider.value = this.effects.reverb.roomSize.toFixed(1);
+        }
+
+        // Update reverb room size display
+        const reverbRoomSizeElement = document.getElementById('reverbRoomSizeValue');
+        if (reverbRoomSizeElement) {
+            reverbRoomSizeElement.textContent = this.effects.reverb.roomSize.toFixed(1) + 's';
+        }
+
+        // Update overdrive drive slider position in real-time (controlled by Pitch)
+        const overdriveDriveSlider = document.getElementById('overdriveDrive');
+        if (overdriveDriveSlider) {
+            overdriveDriveSlider.value = this.effects.overdrive.drive.toFixed(2);
+        }
+
+        // Update overdrive drive display
+        const overdriveDriveElement = document.getElementById('overdriveDriveValue');
+        if (overdriveDriveElement) {
+            overdriveDriveElement.textContent = Math.round(this.effects.overdrive.drive * 100) + '%';
+        }
+
+        // Update orientation display (if element exists) - show all three controls
         const orientationDisplay = document.getElementById('orientationDisplay');
         if (orientationDisplay) {
+            const clampedYaw = Math.max(-45, Math.min(45, orientation.alpha));
             const clampedRoll = Math.max(-45, Math.min(45, orientation.gamma));
+            const clampedPitch = Math.max(-45, Math.min(45, orientation.beta));
+            
+            const yawSign = clampedYaw >= 0 ? '+' : '';
             const rollSign = clampedRoll >= 0 ? '+' : '';
+            const pitchSign = clampedPitch >= 0 ? '+' : '';
+            
             orientationDisplay.innerHTML = `
-                <div>Roll: ${rollSign}${clampedRoll.toFixed(1)}° (natural: 0°, range: ±45°) → Delay Wet/Dry: ${Math.round(this.effects.dubDelay.wetDryMix * 100)}%</div>
+                <div>Yaw: ${yawSign}${clampedYaw.toFixed(1)}° → Delay Time: ${Math.round(this.effects.dubDelay.delayTime * 1000)}ms</div>
+                <div>Roll: ${rollSign}${clampedRoll.toFixed(1)}° → Reverb Room: ${this.effects.reverb.roomSize.toFixed(1)}s</div>
+                <div>Pitch: ${pitchSign}${clampedPitch.toFixed(1)}° → Overdrive: ${Math.round(this.effects.overdrive.drive * 100)}%</div>
             `;
         }
     }
