@@ -677,7 +677,7 @@ class SpoonSoundApp {
     updateEffectsFromOrientation(orientation) {
         // Only use Roll (gamma) for practical real-world testing
         // Roll controls delay wet/dry mix
-        // Clamp roll to ±45 degrees for realistic wrist rotation
+        // Natural phone holding position is ~0°, then ±45° from there
         const clampedRoll = Math.max(-45, Math.min(45, orientation.gamma));
         // Convert -45 to +45 degrees to 0-1 wet/dry range
         const normalizedRoll = (clampedRoll + 45) / 90;
@@ -701,8 +701,9 @@ class SpoonSoundApp {
         const orientationDisplay = document.getElementById('orientationDisplay');
         if (orientationDisplay) {
             const clampedRoll = Math.max(-45, Math.min(45, orientation.gamma));
+            const rollSign = clampedRoll >= 0 ? '+' : '';
             orientationDisplay.innerHTML = `
-                <div>Roll: ${clampedRoll.toFixed(1)}° (±45° range) → Delay Wet/Dry: ${Math.round(this.effects.dubDelay.wetDryMix * 100)}%</div>
+                <div>Roll: ${rollSign}${clampedRoll.toFixed(1)}° (natural: 0°, range: ±45°) → Delay Wet/Dry: ${Math.round(this.effects.dubDelay.wetDryMix * 100)}%</div>
             `;
         }
     }
