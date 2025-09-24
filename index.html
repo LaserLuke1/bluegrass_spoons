@@ -68,14 +68,14 @@
                 <div class="master-controls">
                     <div class="wet-dry-control">
                         <label for="wetDryMix">Wet/Dry</label>
-                        <input type="range" id="wetDryMix" min="0" max="1" step="0.1" value="0.5">
-                        <span id="wetDryValue">50%</span>
+                        <input type="range" id="wetDryMix" min="0" max="1" step="0.1" value="0.0">
+                        <span id="wetDryValue">0%</span>
                     </div>
                     <div class="master-toggle">
-                        <label class="toggle">
-                            <input type="checkbox" id="masterEffectsToggle" checked>
-                            <span class="toggle-slider"></span>
-                        </label>
+                <label class="toggle">
+                    <input type="checkbox" id="masterEffectsToggle">
+                    <span class="toggle-slider"></span>
+                </label>
                         <span class="toggle-label">Master FX</span>
                     </div>
                 </div>
@@ -86,7 +86,7 @@
                 <div class="pedal-header">
                     <h4>Dub Delay (Roll Control)</h4>
                     <label class="toggle">
-                        <input type="checkbox" id="dubDelayToggle" checked>
+                        <input type="checkbox" id="dubDelayToggle">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -103,8 +103,8 @@
                     </div>
                     <div class="control-group">
                         <label>Wet/Dry</label>
-                        <input type="range" id="delayWetDry" min="0" max="1" step="0.1" value="0.6">
-                        <span id="delayWetDryValue">60%</span>
+                        <input type="range" id="delayWetDry" min="0" max="1" step="0.1" value="0.0">
+                        <span id="delayWetDryValue">0%</span>
                     </div>
                 </div>
             </div>
@@ -114,7 +114,7 @@
                 <div class="pedal-header">
                     <h4>Reverb</h4>
                     <label class="toggle">
-                        <input type="checkbox" id="reverbToggle" checked>
+                        <input type="checkbox" id="reverbToggle">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -136,8 +136,8 @@
                     </div>
                     <div class="control-group">
                         <label>Wet/Dry</label>
-                        <input type="range" id="reverbWetDry" min="0" max="1" step="0.1" value="0.4">
-                        <span id="reverbWetDryValue">40%</span>
+                        <input type="range" id="reverbWetDry" min="0" max="1" step="0.1" value="0.0">
+                        <span id="reverbWetDryValue">0%</span>
                     </div>
                 </div>
             </div>
@@ -147,7 +147,7 @@
                 <div class="pedal-header">
                     <h4>Overdrive</h4>
                     <label class="toggle">
-                        <input type="checkbox" id="overdriveToggle" checked>
+                        <input type="checkbox" id="overdriveToggle">
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -169,8 +169,8 @@
                     </div>
                     <div class="control-group">
                         <label>Wet/Dry</label>
-                        <input type="range" id="overdriveWetDry" min="0" max="1" step="0.1" value="0.6">
-                        <span id="overdriveWetDryValue">60%</span>
+                        <input type="range" id="overdriveWetDry" min="0" max="1" step="0.1" value="0.0">
+                        <span id="overdriveWetDryValue">0%</span>
                     </div>
                 </div>
             </div>
@@ -179,14 +179,14 @@
         <div class="orientation-display">
             <h3>Device Orientation</h3>
             <div class="orientation-info" id="orientationDisplay">
-                <div>Roll: 0° → Delay Wet/Dry: 50%</div>
+                <div>Roll: 0° (±45° range) → Delay Wet/Dry: 0%</div>
             </div>
             <div class="orientation-instructions">
                 <p><strong>Tilt your device left/right to control delay:</strong></p>
                 <ul>
-                    <li><strong>Roll (tilt left/right):</strong> Controls delay wet/dry mix (0% - 100%)</li>
+                    <li><strong>Roll (tilt left/right ±45°):</strong> Controls delay wet/dry mix (0% - 100%)</li>
                 </ul>
-                <p><em>Hold device flat and tilt left/right to adjust delay intensity.</em></p>
+                <p><em>Hold device flat and tilt left/right within 45° to adjust delay intensity.</em></p>
             </div>
         </div>
 

@@ -10,29 +10,29 @@ class SpoonSoundApp {
         this.baseVolume = 4.0; // master volume (boosted for desktop testing)
         
         // Effects system - now controlled by device rotation
-        this.masterEffectsEnabled = true; // Master effects on/off
-        this.wetDryMix = 0.5; // Wet/dry mix (0 = dry, 1 = wet)
+        this.masterEffectsEnabled = false; // Master effects off by default
+        this.wetDryMix = 0.0; // Start at 0% wet (dry signal only)
         this.effects = {
             dubDelay: {
-                enabled: true,        // Always active, controlled by rotation
-                delayTime: 0.25,      // 250ms delay (controlled by yaw)
+                enabled: false,       // Off by default
+                delayTime: 0.25,      // 250ms delay
                 feedback: 0.4,        // 40% feedback
                 filterFreq: 800,      // Low-pass filter on delay
-                wetDryMix: 0.6        // 60% wet signal (individual wet/dry mix)
+                wetDryMix: 0.0        // Start at 0% wet (dry signal only)
             },
             overdrive: {
-                enabled: true,        // Always active, controlled by rotation
-                drive: 0.3,          // 30% drive amount (controlled by pitch)
+                enabled: false,       // Off by default
+                drive: 0.3,          // 30% drive amount
                 tone: 0.6,           // 60% tone control
                 level: 1.0,          // 100% output level
-                wetDryMix: 0.6       // 60% wet signal (individual wet/dry mix)
+                wetDryMix: 0.0       // Start at 0% wet (dry signal only)
             },
             reverb: {
-                enabled: true,        // Always active
+                enabled: false,       // Off by default
                 roomSize: 0.8,        // Room size in seconds (0.1-2.0)
                 decay: 1.5,          // Decay time in seconds (0.1-3.0)
                 damping: 0.3,        // High frequency damping (0-1)
-                wetDryMix: 0.4       // 40% wet signal (individual wet/dry mix)
+                wetDryMix: 0.0       // Start at 0% wet (dry signal only)
             }
         };
 
@@ -677,8 +677,10 @@ class SpoonSoundApp {
     updateEffectsFromOrientation(orientation) {
         // Only use Roll (gamma) for practical real-world testing
         // Roll controls delay wet/dry mix
-        // Convert -90 to +90 degrees to 0-1 wet/dry range
-        const normalizedRoll = (orientation.gamma + 90) / 180;
+        // Clamp roll to ±45 degrees for realistic wrist rotation
+        const clampedRoll = Math.max(-45, Math.min(45, orientation.gamma));
+        // Convert -45 to +45 degrees to 0-1 wet/dry range
+        const normalizedRoll = (clampedRoll + 45) / 90;
         this.effects.dubDelay.wetDryMix = Math.max(0, Math.min(1, normalizedRoll));
 
         // Update the effects chain with new parameters
@@ -698,8 +700,9 @@ class SpoonSoundApp {
         // Update orientation display (if element exists) - only show roll control
         const orientationDisplay = document.getElementById('orientationDisplay');
         if (orientationDisplay) {
+            const clampedRoll = Math.max(-45, Math.min(45, orientation.gamma));
             orientationDisplay.innerHTML = `
-                <div>Roll: ${orientation.gamma.toFixed(1)}° → Delay Wet/Dry: ${Math.round(this.effects.dubDelay.wetDryMix * 100)}%</div>
+                <div>Roll: ${clampedRoll.toFixed(1)}° (±45° range) → Delay Wet/Dry: ${Math.round(this.effects.dubDelay.wetDryMix * 100)}%</div>
             `;
         }
     }
