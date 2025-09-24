@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Shaki Spoons</title>
-
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://laserluke1.github.io/bluegrass_spoons/">
-    <meta property="og:title" content="Shaki Spoons">
-    <meta property="og:description" content="Play authentic spoon sounds right from your browser.">
-    <meta property="og:image" content="https://laserluke1.github.io/bluegrass_spoons/site_share1.png">
-
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥄</text></svg>">
+    <link rel="stylesheet" href="style.css?v=1.0.20">
     <link href="https://fonts.googleapis.com/css2?family=Creepster&family=UnifrakturCook:wght@700&family=Cinzel:wght@400;600&family=Fredoka+One:wght@400&family=Bungee:wght@400&family=Righteous:wght@400&family=Luckiest+Guy:wght@400&family=Chewy:wght@400&family=Boogaloo:wght@400&family=Oswald:wght@400;600;700&family=Anton:wght@400&family=Archivo+Black:wght@400&family=Passion+One:wght@400;700;900&family=Flavors&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -69,22 +66,169 @@
             </div>
         </div>
 
+        <div class="effects-section">
+            <div class="effects-header">
+                <h3>FX Rack</h3>
+                <div class="master-controls">
+                    <div class="wet-dry-control">
+                        <label for="wetDryMix">Wet/Dry</label>
+                        <input type="range" id="wetDryMix" min="0" max="1" step="0.1" value="0.0">
+                        <span id="wetDryValue">0%</span>
+                    </div>
+                    <div class="master-toggle">
+                <label class="toggle">
+                    <input type="checkbox" id="masterEffectsToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+                        <span class="toggle-label">Master FX</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dub Delay -->
+            <div class="pedal dub-delay">
+                <div class="pedal-header">
+                    <h4>Dub Delay</h4>
+                    <label class="toggle">
+                        <input type="checkbox" id="dubDelayToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="pedal-controls">
+                    <div class="control-group">
+                        <label>Time</label>
+                        <input type="range" id="delayTime" min="0.1" max="0.8" step="0.05" value="0.25">
+                        <span id="delayTimeValue">250ms</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Feedback</label>
+                        <input type="range" id="delayFeedback" min="0" max="0.8" step="0.05" value="0.4">
+                        <span id="delayFeedbackValue">40%</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Wet/Dry</label>
+                        <input type="range" id="delayWetDry" min="0" max="1" step="0.1" value="0.0">
+                        <span id="delayWetDryValue">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reverb -->
+            <div class="pedal reverb">
+                <div class="pedal-header">
+                    <h4>Reverb (caution)</h4>
+                    <label class="toggle">
+                        <input type="checkbox" id="reverbToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="pedal-controls">
+                    <div class="control-group">
+                        <label>Room Size</label>
+                        <input type="range" id="reverbRoomSize" min="0.1" max="2.0" step="0.1" value="0.8">
+                        <span id="reverbRoomSizeValue">0.8s</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Decay</label>
+                        <input type="range" id="reverbDecay" min="0.1" max="3.0" step="0.1" value="1.5">
+                        <span id="reverbDecayValue">1.5s</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Damping</label>
+                        <input type="range" id="reverbDamping" min="0" max="1" step="0.1" value="0.3">
+                        <span id="reverbDampingValue">30%</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Wet/Dry</label>
+                        <input type="range" id="reverbWetDry" min="0" max="1" step="0.1" value="0.0">
+                        <span id="reverbWetDryValue">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overdrive -->
+            <div class="pedal overdrive">
+                <div class="pedal-header">
+                    <h4>Overdrive (caution)</h4>
+                    <label class="toggle">
+                        <input type="checkbox" id="overdriveToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="pedal-controls">
+                    <div class="control-group">
+                        <label>Drive</label>
+                        <input type="range" id="overdriveDrive" min="0" max="0.8" step="0.05" value="0.3">
+                        <span id="overdriveDriveValue">30%</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Tone</label>
+                        <input type="range" id="overdriveTone" min="0" max="1" step="0.1" value="0.6">
+                        <span id="overdriveToneValue">60%</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Level</label>
+                        <input type="range" id="overdriveLevel" min="0" max="2" step="0.1" value="1.0">
+                        <span id="overdriveLevelValue">100%</span>
+                    </div>
+                    <div class="control-group">
+                        <label>Wet/Dry</label>
+                        <input type="range" id="overdriveWetDry" min="0" max="1" step="0.1" value="0.0">
+                        <span id="overdriveWetDryValue">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="orientation-display">
+            <h3>Device Orientation</h3>
+            <div class="orientation-info" id="orientationDisplay">
+                <div>Roll: 0° → All Wet/Dry Mix</div>
+                <div>Delay Wet/Dry: 50%</div>
+                <div>Reverb Wet/Dry: 50%</div>
+                <div>Overdrive Wet/Dry: 50%</div>
+            </div>
+            <div class="orientation-instructions">
+                <p><strong>Tilt your device left/right to control wet/dry mix:</strong></p>
+                <ul>
+                    <li><strong>Tilt left/right (Roll):</strong> Controls wet/dry mix for all effects simultaneously</li>
+                    <li><strong>Tilt left:</strong> 0% wet (dry signal only)</li>
+                    <li><strong>Natural hold:</strong> 50% wet/dry mix</li>
+                    <li><strong>Tilt right:</strong> 100% wet (full effect)</li>
+                </ul>
+                <p><em>Hold device naturally and tilt left/right within ±45° to blend between dry signal and full effects. The wet/dry sliders will move in real-time to show current values.</em></p>
+            </div>
+        </div>
+
         <div class="instructions">
             <h3>How to Play Shaki Spoons:</h3>
             <ol>
                 <li>Click "Start Sound App" to begin</li>
-                <li><strong>Allow motion sensor access when prompted</strong> - this enables the core shake-to-play feature!</li>
+                <li><strong>Allow motion and orientation sensor access when prompted</strong> - this enables shake-to-play and rotation-controlled effects!</li>
                 <li><strong>Shake your phone</strong> to play shaki spoon sounds (the main feature!)</li>
+                <li><strong>Tilt your device left/right</strong> to control wet/dry mix in real-time:
+                    <ul>
+                        <li><strong>Tilt left:</strong> Dry signal only (no effects)</li>
+                        <li><strong>Tilt right:</strong> Full effects (100% wet)</li>
+                        <li><strong>Natural hold:</strong> Balanced 50% wet/dry mix</li>
+                    </ul>
+                </li>
                 <li>Tap the large spoon or anywhere on screen as an alternative</li>
                 <li>Select different spoon types to hear different sounds</li>
                 <li><strong>Adjust the Playing Tempo slider</strong> to change rhythm patterns - from sparse hits to rapid arpeggiated cascades</li>
                 <li>Use your device's volume controls to adjust sound level</li>
-                <li>Try rapid shaking for shaki-style rhythms</li>
+                <li>Try rapid shaking for shaki-style rhythms with rotation-controlled effects!</li>
             </ol>
         </div>
 
         <div class="spoon-types">
-            <h3>Spoon Collection</h3>
+            <div class="spoon-collection-header">
+                <h3>Spoon Collection</h3>
+                <button id="addSoundsBtn" class="add-sounds-btn" title="Add Sounds (Easter Egg)">
+                    <span class="add-icon">+</span>
+                    <span class="add-text">Add Sounds</span>
+                </button>
+            </div>
             <div class="spoon-grid">
                 <div class="spoon-card wooden">
                     <div class="spoon-icon">🥄</div>
@@ -115,9 +259,10 @@
         
         <footer class="copyright">
             <p>&copy; 2025 ArtProject LLC</p>
+            <p class="version">Version <span id="versionNumber">1.0.23</span></p>
         </footer>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=1.0.20"></script>
 </body>
 </html>
