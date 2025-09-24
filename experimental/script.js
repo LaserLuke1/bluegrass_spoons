@@ -631,7 +631,7 @@ class SpoonSoundApp {
 
     updateEffectsFromOrientation(orientation) {
         // Roll (gamma) controls wet/dry mix for all effects
-        // Roll (gamma): -45 to +45 degrees, controls wet/dry mix (0 to 1)
+        // The calibrated zero point becomes the center of the control range
         
         // Add smoothing to prevent sudden jumps
         if (!this.smoothedRoll) {
@@ -652,11 +652,13 @@ class SpoonSoundApp {
         // Apply the limited change
         this.smoothedRoll = this.smoothedRoll + limitedRollChange;
         
-        // Clamp the smoothed roll value
-        const clampedRoll = Math.max(-45, Math.min(45, this.smoothedRoll));
+        // New mapping: calibrated zero point = 0.5 wet/dry mix
+        // ±45 degrees from zero point = full range (0 to 1)
+        const rollRange = 45; // 45 degrees in each direction from center
+        const clampedRoll = Math.max(-rollRange, Math.min(rollRange, this.smoothedRoll));
         
-        // Convert to 0-1 range with additional safety clamping
-        let normalizedRoll = (clampedRoll + 45) / 90; // 0 to 1
+        // Convert to 0-1 range: 0 = -45°, 0.5 = 0°, 1 = +45°
+        let normalizedRoll = (clampedRoll + rollRange) / (rollRange * 2); // 0 to 1
         normalizedRoll = Math.max(0, Math.min(1, normalizedRoll)); // Extra safety clamp
         
         // Track orientation values for smoothing
@@ -714,11 +716,12 @@ class SpoonSoundApp {
         // Update orientation display (if element exists) - show roll control for wet/dry mix
         const orientationDisplay = document.getElementById('orientationDisplay');
         if (orientationDisplay) {
-            const clampedRoll = Math.max(-45, Math.min(45, orientation.gamma));
+            const rollRange = 45;
+            const clampedRoll = Math.max(-rollRange, Math.min(rollRange, orientation.gamma));
             const rollSign = clampedRoll >= 0 ? '+' : '';
             
             orientationDisplay.innerHTML = `
-                <div>Roll: ${rollSign}${clampedRoll.toFixed(1)}° → All Wet/Dry Mix</div>
+                <div>Roll: ${rollSign}${clampedRoll.toFixed(1)}° (0° = 50% wet/dry) → All Wet/Dry Mix</div>
                 <div>Delay Wet/Dry: ${Math.round(this.effects.dubDelay.wetDryMix * 100)}%</div>
                 <div>Reverb Wet/Dry: ${Math.round(this.effects.reverb.wetDryMix * 100)}%</div>
                 <div>Overdrive Wet/Dry: ${Math.round(this.effects.overdrive.wetDryMix * 100)}%</div>
