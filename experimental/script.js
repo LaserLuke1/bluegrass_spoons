@@ -638,9 +638,19 @@ class SpoonSoundApp {
             this.smoothedRoll = orientation.gamma || 0;
         }
         
-        // Smooth the roll value to prevent jumping
-        const smoothingFactor = 0.1; // Lower = more smoothing
-        this.smoothedRoll = this.smoothedRoll + (orientation.gamma - this.smoothedRoll) * smoothingFactor;
+        // Limit maximum change per frame to prevent large jumps
+        const maxChangePerFrame = 5; // Maximum degrees change per frame
+        const rawRoll = orientation.gamma || 0;
+        const rollDifference = rawRoll - this.smoothedRoll;
+        
+        // If the change is too large, limit it
+        let limitedRollChange = rollDifference;
+        if (Math.abs(rollDifference) > maxChangePerFrame) {
+            limitedRollChange = Math.sign(rollDifference) * maxChangePerFrame;
+        }
+        
+        // Apply the limited change
+        this.smoothedRoll = this.smoothedRoll + limitedRollChange;
         
         // Clamp the smoothed roll value
         const clampedRoll = Math.max(-45, Math.min(45, this.smoothedRoll));
