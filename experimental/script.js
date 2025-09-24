@@ -10,29 +10,29 @@ class SpoonSoundApp {
         this.baseVolume = 4.0; // master volume (boosted for desktop testing)
         
         // Effects system - now controlled by device rotation
-        this.masterEffectsEnabled = true; // Master effects on/off
-        this.wetDryMix = 0.5; // Wet/dry mix (0 = dry, 1 = wet)
+        this.masterEffectsEnabled = false; // Master effects off by default
+        this.wetDryMix = 0.0; // Start at 0% wet (dry signal only)
         this.effects = {
             dubDelay: {
-                enabled: true,        // Always active, controlled by rotation
-                delayTime: 0.25,      // 250ms delay (controlled by yaw)
+                enabled: false,       // Off by default
+                delayTime: 0.25,      // 250ms delay
                 feedback: 0.4,        // 40% feedback
                 filterFreq: 800,      // Low-pass filter on delay
-                wetDryMix: 0.6        // 60% wet signal (individual wet/dry mix)
+                wetDryMix: 0.0        // Start at 0% wet (dry signal only)
             },
             overdrive: {
-                enabled: true,        // Always active, controlled by rotation
-                drive: 0.3,          // 30% drive amount (controlled by pitch)
+                enabled: false,       // Off by default
+                drive: 0.3,          // 30% drive amount
                 tone: 0.6,           // 60% tone control
                 level: 1.0,          // 100% output level
-                wetDryMix: 0.6       // 60% wet signal (individual wet/dry mix)
+                wetDryMix: 0.0       // Start at 0% wet (dry signal only)
             },
             reverb: {
-                enabled: true,        // Always active
+                enabled: false,       // Off by default
                 roomSize: 0.8,        // Room size in seconds (0.1-2.0)
                 decay: 1.5,          // Decay time in seconds (0.1-3.0)
                 damping: 0.3,        // High frequency damping (0-1)
-                wetDryMix: 0.4       // 40% wet signal (individual wet/dry mix)
+                wetDryMix: 0.0       // Start at 0% wet (dry signal only)
             }
         };
 
@@ -101,6 +101,17 @@ class SpoonSoundApp {
         
         // Initialize default material styling
         this.selectSound(this.currentSound);
+        
+        // Initialize effects visual state (all effects start disabled)
+        this.updatePedalVisualState('dub-delay', false);
+        this.updatePedalVisualState('overdrive', false);
+        this.updatePedalVisualState('reverb', false);
+        
+        // Ensure master effects toggle is visually off (already set to false in constructor)
+        const masterToggle = document.getElementById('masterEffectsToggle');
+        if (masterToggle) {
+            masterToggle.checked = false;
+        }
     }
 
     initializeElements() {
@@ -675,20 +686,16 @@ class SpoonSoundApp {
     }
 
     updateEffectsFromOrientation(orientation) {
-        // Yaw (alpha) controls delay time
-        // Convert 0-360 degrees to 0.1-0.8 seconds
-        const normalizedYaw = ((orientation.alpha + 180) % 360) / 360;
-        this.effects.dubDelay.delayTime = 0.1 + (normalizedYaw * 0.7);
+        // Roll (gamma) controls wet/dry mix for all effects
+        // Roll (gamma): -45 to +45 degrees, controls wet/dry mix (0 to 1)
         
-        // Roll (gamma) controls reverb room size
-        // Convert -90 to +90 degrees to 0.1-2.0 seconds
-        const normalizedRoll = (orientation.gamma + 90) / 180;
-        this.effects.reverb.roomSize = 0.1 + (normalizedRoll * 1.9);
+        const clampedRoll = Math.max(-45, Math.min(45, orientation.gamma));
+        const normalizedRoll = (clampedRoll + 45) / 90; // 0 to 1
         
-        // Pitch (beta) controls overdrive amount
-        // Convert -180 to +180 degrees to 0-0.8 drive
-        const normalizedPitch = (orientation.beta + 180) / 360;
-        this.effects.overdrive.drive = normalizedPitch * 0.8;
+        // Roll controls wet/dry mix for all effects
+        this.effects.dubDelay.wetDryMix = normalizedRoll; // 0 to 1
+        this.effects.reverb.wetDryMix = normalizedRoll; // 0 to 1
+        this.effects.overdrive.wetDryMix = normalizedRoll; // 0 to 1
 
         // Update the effects chain with new parameters
         this.updateEffectsChain();
@@ -698,31 +705,53 @@ class SpoonSoundApp {
     }
 
     updateOrientationDisplay(orientation) {
-        // Update delay time display
-        const delayTimeElement = document.getElementById('delayTimeValue');
-        if (delayTimeElement) {
-            delayTimeElement.textContent = Math.round(this.effects.dubDelay.delayTime * 1000) + 'ms';
+        // Update wet/dry sliders position in real-time (controlled by Roll)
+        const delayWetDrySlider = document.getElementById('delayWetDry');
+        if (delayWetDrySlider) {
+            delayWetDrySlider.value = this.effects.dubDelay.wetDryMix.toFixed(1);
         }
 
-        // Update reverb room size display
-        const reverbRoomSizeElement = document.getElementById('reverbRoomSizeValue');
-        if (reverbRoomSizeElement) {
-            reverbRoomSizeElement.textContent = this.effects.reverb.roomSize.toFixed(1) + 's';
+        // Update delay wet/dry display
+        const delayWetDryElement = document.getElementById('delayWetDryValue');
+        if (delayWetDryElement) {
+            delayWetDryElement.textContent = Math.round(this.effects.dubDelay.wetDryMix * 100) + '%';
         }
 
-        // Update overdrive drive display
-        const overdriveDriveElement = document.getElementById('overdriveDriveValue');
-        if (overdriveDriveElement) {
-            overdriveDriveElement.textContent = Math.round(this.effects.overdrive.drive * 100) + '%';
+        // Update reverb wet/dry slider position in real-time (controlled by Roll)
+        const reverbWetDrySlider = document.getElementById('reverbWetDry');
+        if (reverbWetDrySlider) {
+            reverbWetDrySlider.value = this.effects.reverb.wetDryMix.toFixed(1);
         }
 
-        // Update orientation display (if element exists)
+        // Update reverb wet/dry display
+        const reverbWetDryElement = document.getElementById('reverbWetDryValue');
+        if (reverbWetDryElement) {
+            reverbWetDryElement.textContent = Math.round(this.effects.reverb.wetDryMix * 100) + '%';
+        }
+
+        // Update overdrive wet/dry slider position in real-time (controlled by Roll)
+        const overdriveWetDrySlider = document.getElementById('overdriveWetDry');
+        if (overdriveWetDrySlider) {
+            overdriveWetDrySlider.value = this.effects.overdrive.wetDryMix.toFixed(1);
+        }
+
+        // Update overdrive wet/dry display
+        const overdriveWetDryElement = document.getElementById('overdriveWetDryValue');
+        if (overdriveWetDryElement) {
+            overdriveWetDryElement.textContent = Math.round(this.effects.overdrive.wetDryMix * 100) + '%';
+        }
+
+        // Update orientation display (if element exists) - show roll control for wet/dry mix
         const orientationDisplay = document.getElementById('orientationDisplay');
         if (orientationDisplay) {
+            const clampedRoll = Math.max(-45, Math.min(45, orientation.gamma));
+            const rollSign = clampedRoll >= 0 ? '+' : '';
+            
             orientationDisplay.innerHTML = `
-                <div>Yaw: ${orientation.alpha.toFixed(1)}° → Delay: ${Math.round(this.effects.dubDelay.delayTime * 1000)}ms</div>
-                <div>Roll: ${orientation.gamma.toFixed(1)}° → Reverb: ${this.effects.reverb.roomSize.toFixed(1)}s</div>
-                <div>Pitch: ${orientation.beta.toFixed(1)}° → Overdrive: ${Math.round(this.effects.overdrive.drive * 100)}%</div>
+                <div>Roll: ${rollSign}${clampedRoll.toFixed(1)}° → All Wet/Dry Mix</div>
+                <div>Delay Wet/Dry: ${Math.round(this.effects.dubDelay.wetDryMix * 100)}%</div>
+                <div>Reverb Wet/Dry: ${Math.round(this.effects.reverb.wetDryMix * 100)}%</div>
+                <div>Overdrive Wet/Dry: ${Math.round(this.effects.overdrive.wetDryMix * 100)}%</div>
             `;
         }
     }
