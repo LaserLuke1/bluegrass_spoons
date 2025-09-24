@@ -84,9 +84,17 @@ class SpoonSoundApp {
             },
             'metal-spoon': {
                 name: 'Metal Spoon',
-                frequencies: [800, 1200, 1600, 2000],
+                frequencies: [2500, 5000, 7500, 9000], // Based on synthesized metal spoon analysis
                 type: 'square',
-                filterFreq: 2000,
+                filterFreq: 8000, // Higher filter frequency for metal's bright, cutting sound
+                // Enhanced parameters based on synthesized metal spoon analysis
+                attackTime: 0.0002,  // Very sharp attack (0.2ms - sharper than wood)
+                decayCurve: 'metal', // Material-specific decay
+                resonanceQ: 3.0,     // Metal has higher Q factor for bright resonance
+                harmonicContent: [1.0, 0.8, 0.6, 0.4, 0.25], // Strong harmonic content for bright metal sound
+                // Metal-specific characteristics
+                metallicBrightness: 1.5, // Boost high frequencies
+                inharmonicContent: 0.3,   // Add some inharmonic metallic content
             },
             'plastic-spoon': {
                 name: 'Plastic Spoon',
@@ -1358,11 +1366,13 @@ class SpoonSoundApp {
 
     // Richer tonal component: adds material-specific harmonics and resonance based on waveform analysis
     createRichMaterialTone(cfg, startTime, intensity, rhythm, finalVolume, tempo = 1.0) {
-        // Enhanced harmonic generation for wooden spoon based on real waveform analysis
+        // Enhanced harmonic generation based on material-specific waveform analysis
         const harmonics = cfg.harmonicContent || [1.0, 0.6, 0.3, 0.15, 0.08];
         const resonanceQ = cfg.resonanceQ || 1.0;
+        const metallicBrightness = cfg.metallicBrightness || 1.0;
+        const inharmonicContent = cfg.inharmonicContent || 0.0;
         
-        // Enhanced wooden spoon parameters are being used
+        // Material-specific parameters are now being used
         
         // Create multiple oscillators for harmonic richness (like real wooden resonance)
         const oscillators = [];
@@ -1436,7 +1446,7 @@ class SpoonSoundApp {
             f0 = freqs[Math.floor(Math.random() * freqs.length)] * freqMul;
         }
 
-        // Enhanced harmonic generation based on real wooden spoon waveform analysis
+        // Enhanced harmonic generation based on material-specific waveform analysis
         for (let i = 0; i < oscillators.length; i++) {
             const osc = oscillators[i];
             const gain = gains[i];
@@ -1454,9 +1464,9 @@ class SpoonSoundApp {
             osc.frequency.setValueAtTime(fStart, startTime);
             osc.frequency.linearRampToValueAtTime(fEnd, startTime + toneDur);
 
-            // Material-specific filtering with enhanced Q factor for wood
+            // Material-specific filtering with enhanced parameters
             filter.type = 'highpass';
-            const hp = cfg.filterFreq * 0.5 * (intensity === 'strong' ? 1.1 : 1.0);
+            const hp = cfg.filterFreq * 0.5 * (intensity === 'strong' ? 1.1 : 1.0) * metallicBrightness;
             filter.frequency.setValueAtTime(hp, startTime);
             filter.Q.setValueAtTime(resonanceQ + (intensity === 'strong' ? 0.4 : 0), startTime);
 
@@ -1475,6 +1485,71 @@ class SpoonSoundApp {
 
             this.audioInstances.push({ source: osc, contextTime: startTime + toneDur });
         }
+
+        // Add inharmonic metallic content for metal spoons (based on synthesis analysis)
+        if (inharmonicContent > 0) {
+            this.createMetallicInharmonicContent(cfg, startTime, intensity, rhythm, finalVolume, toneDur, inharmonicContent);
+        }
+    }
+
+    // Create inharmonic metallic content based on synthesized metal spoon analysis
+    createMetallicInharmonicContent(cfg, startTime, intensity, rhythm, finalVolume, toneDur, inharmonicContent) {
+        // Create inharmonic frequencies that don't follow the harmonic series
+        // Based on the synthesis analysis: metallic noise that decays quickly
+        
+        const metallicNoise = this.audioContext.createBufferSource();
+        const noiseBuffer = this.audioContext.createBuffer(1, 
+            Math.floor(this.audioContext.sampleRate * toneDur), 
+            this.audioContext.sampleRate
+        );
+        
+        // Generate metallic noise with high-frequency emphasis
+        const data = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+            const progress = i / data.length;
+            // Exponential decay envelope
+            const envelope = Math.exp(-progress * 30); // Quick decay like in synthesis
+            // High-frequency noise with some metallic character
+            data[i] = (Math.random() * 2 - 1) * envelope * 0.1;
+        }
+        
+        metallicNoise.buffer = noiseBuffer;
+        
+        // Create filter chain for metallic character
+        const highPassFilter = this.audioContext.createBiquadFilter();
+        const lowPassFilter = this.audioContext.createBiquadFilter();
+        const gain = this.audioContext.createGain();
+        
+        // High-pass to emphasize metallic high frequencies
+        highPassFilter.type = 'highpass';
+        highPassFilter.frequency.setValueAtTime(2000, startTime); // Start above 2kHz
+        highPassFilter.Q.setValueAtTime(2.0, startTime);
+        
+        // Low-pass to shape the metallic character
+        lowPassFilter.type = 'lowpass';
+        lowPassFilter.frequency.setValueAtTime(cfg.filterFreq * 1.5, startTime); // Allow higher frequencies
+        lowPassFilter.Q.setValueAtTime(1.0, startTime);
+        
+        // Apply effects chain
+        this.createEffectsChain(gain);
+        
+        // Connect the chain
+        metallicNoise.connect(highPassFilter);
+        highPassFilter.connect(lowPassFilter);
+        lowPassFilter.connect(gain);
+        
+        // Volume based on intensity and inharmonic content
+        const metallicVol = finalVolume * 0.3 * inharmonicContent * 
+            (intensity === 'strong' ? 1.2 : intensity === 'light' ? 0.6 : 1.0);
+        
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(metallicVol, startTime + 0.001); // Quick attack
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + toneDur);
+        
+        metallicNoise.start(startTime);
+        metallicNoise.stop(startTime + toneDur);
+        
+        this.audioInstances.push({ source: metallicNoise, contextTime: startTime + toneDur });
     }
 
     selectSound(sound) {
