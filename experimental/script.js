@@ -639,7 +639,7 @@ class SpoonSoundApp {
         }
         
         // Limit maximum change per frame to prevent large jumps
-        const maxChangePerFrame = 5; // Maximum degrees change per frame
+        const maxChangePerFrame = 1; // Maximum degrees change per frame
         const rawRoll = orientation.gamma || 0;
         const rollDifference = rawRoll - this.smoothedRoll;
         
