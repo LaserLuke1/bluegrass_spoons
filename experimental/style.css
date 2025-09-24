@@ -1497,6 +1497,7 @@ header::before {
     }
 }
 
+
 @media (max-width: 480px) {
     .title {
         font-size: 2.8rem;
