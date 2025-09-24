@@ -1044,6 +1044,19 @@ header::before {
     opacity: 0.8;
 }
 
+.copyright .version {
+    margin-top: 8px !important;
+    font-size: 0.8rem !important;
+    color: #D4AF37 !important;
+    opacity: 0.9 !important;
+}
+
+.copyright .version span {
+    font-weight: bold;
+    color: #FFD700;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
 /* Effects Section */
 .effects-section {
     margin: 30px 0;

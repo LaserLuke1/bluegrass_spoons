@@ -29,9 +29,9 @@ class SpoonSoundApp {
             },
             reverb: {
                 enabled: false,       // Off by default
-                roomSize: 0.8,        // Room size in seconds (0.1-2.0)
-                decay: 1.5,          // Decay time in seconds (0.1-3.0)
-                damping: 0.3,        // High frequency damping (0-1)
+                roomSize: 1.2,        // Room size in seconds (0.1-2.0) - more reasonable default
+                decay: 0.8,          // Decay time in seconds (0.1-2.0) - shorter to prevent issues
+                damping: 0.4,        // High frequency damping (0-1) - slightly higher default
                 wetDryMix: 0.0       // Start at 0% wet (dry signal only)
             }
         };
@@ -46,6 +46,16 @@ class SpoonSoundApp {
         // Orientation calibration
         this.orientationCalibrated = false;
         this.orientationOffset = { alpha: 0, beta: 0, gamma: 0 };
+        
+        // Orientation smoothing
+        this.smoothedRoll = null;
+        this.lastNormalizedRoll = 0;
+        
+        // Reverb buffer cache to prevent memory issues
+        this.reverbBufferCache = new Map();
+        
+        // Version management
+        // Version managed manually in HTML
 
         // Motion tuning (from the reliable motion version)
         this.motionThreshold = 8.0; // delta threshold for shake
@@ -199,21 +209,18 @@ class SpoonSoundApp {
         document.getElementById('wetDryMix').addEventListener('input', (e) => {
             this.wetDryMix = parseFloat(e.target.value);
             document.getElementById('wetDryValue').textContent = Math.round(this.wetDryMix * 100) + '%';
-            console.log('Wet/Dry Mix:', Math.round(this.wetDryMix * 100) + '%');
             this.updateEffectsChain();
         });
 
         // Master effects toggle
         document.getElementById('masterEffectsToggle').addEventListener('change', (e) => {
             this.masterEffectsEnabled = e.target.checked;
-            console.log('Master Effects:', this.masterEffectsEnabled ? 'ON' : 'OFF');
             this.updateEffectsChain();
         });
 
         // Individual effect toggles
         document.getElementById('dubDelayToggle').addEventListener('change', (e) => {
             this.effects.dubDelay.enabled = e.target.checked;
-            console.log('Dub Delay:', this.effects.dubDelay.enabled ? 'ON' : 'OFF');
             this.updatePedalVisualState('dub-delay', this.effects.dubDelay.enabled);
             this.updateEffectsChain();
         });
@@ -221,14 +228,12 @@ class SpoonSoundApp {
 
         document.getElementById('overdriveToggle').addEventListener('change', (e) => {
             this.effects.overdrive.enabled = e.target.checked;
-            console.log('Overdrive:', this.effects.overdrive.enabled ? 'ON' : 'OFF');
             this.updatePedalVisualState('overdrive', this.effects.overdrive.enabled);
             this.updateEffectsChain();
         });
 
         document.getElementById('reverbToggle').addEventListener('change', (e) => {
             this.effects.reverb.enabled = e.target.checked;
-            console.log('Reverb:', this.effects.reverb.enabled ? 'ON' : 'OFF');
             this.updatePedalVisualState('reverb', this.effects.reverb.enabled);
             this.updateEffectsChain();
         });
@@ -243,7 +248,6 @@ class SpoonSoundApp {
         document.getElementById('delayWetDry').addEventListener('input', (e) => {
             this.effects.dubDelay.wetDryMix = parseFloat(e.target.value);
             document.getElementById('delayWetDryValue').textContent = Math.round(this.effects.dubDelay.wetDryMix * 100) + '%';
-            console.log('Delay Wet/Dry:', Math.round(this.effects.dubDelay.wetDryMix * 100) + '%');
             this.updateEffectsChain();
         });
 
@@ -252,28 +256,24 @@ class SpoonSoundApp {
         document.getElementById('overdriveDrive').addEventListener('input', (e) => {
             this.effects.overdrive.drive = parseFloat(e.target.value);
             document.getElementById('overdriveDriveValue').textContent = Math.round(this.effects.overdrive.drive * 100) + '%';
-            console.log('Overdrive Drive:', Math.round(this.effects.overdrive.drive * 100) + '%');
             this.updateEffectsChain();
         });
 
         document.getElementById('overdriveTone').addEventListener('input', (e) => {
             this.effects.overdrive.tone = parseFloat(e.target.value);
             document.getElementById('overdriveToneValue').textContent = Math.round(this.effects.overdrive.tone * 100) + '%';
-            console.log('Overdrive Tone:', Math.round(this.effects.overdrive.tone * 100) + '%');
             this.updateEffectsChain();
         });
 
         document.getElementById('overdriveLevel').addEventListener('input', (e) => {
             this.effects.overdrive.level = parseFloat(e.target.value);
             document.getElementById('overdriveLevelValue').textContent = Math.round(this.effects.overdrive.level * 100) + '%';
-            console.log('Overdrive Level:', Math.round(this.effects.overdrive.level * 100) + '%');
             this.updateEffectsChain();
         });
 
         document.getElementById('overdriveWetDry').addEventListener('input', (e) => {
             this.effects.overdrive.wetDryMix = parseFloat(e.target.value);
             document.getElementById('overdriveWetDryValue').textContent = Math.round(this.effects.overdrive.wetDryMix * 100) + '%';
-            console.log('Overdrive Wet/Dry:', Math.round(this.effects.overdrive.wetDryMix * 100) + '%');
             this.updateEffectsChain();
         });
 
@@ -281,28 +281,24 @@ class SpoonSoundApp {
         document.getElementById('reverbRoomSize').addEventListener('input', (e) => {
             this.effects.reverb.roomSize = parseFloat(e.target.value);
             document.getElementById('reverbRoomSizeValue').textContent = this.effects.reverb.roomSize.toFixed(1) + 's';
-            console.log('Reverb Room Size:', this.effects.reverb.roomSize.toFixed(1) + 's');
             this.updateEffectsChain();
         });
 
         document.getElementById('reverbDecay').addEventListener('input', (e) => {
             this.effects.reverb.decay = parseFloat(e.target.value);
             document.getElementById('reverbDecayValue').textContent = this.effects.reverb.decay.toFixed(1) + 's';
-            console.log('Reverb Decay:', this.effects.reverb.decay.toFixed(1) + 's');
             this.updateEffectsChain();
         });
 
         document.getElementById('reverbDamping').addEventListener('input', (e) => {
             this.effects.reverb.damping = parseFloat(e.target.value);
             document.getElementById('reverbDampingValue').textContent = Math.round(this.effects.reverb.damping * 100) + '%';
-            console.log('Reverb Damping:', Math.round(this.effects.reverb.damping * 100) + '%');
             this.updateEffectsChain();
         });
 
         document.getElementById('reverbWetDry').addEventListener('input', (e) => {
             this.effects.reverb.wetDryMix = parseFloat(e.target.value);
             document.getElementById('reverbWetDryValue').textContent = Math.round(this.effects.reverb.wetDryMix * 100) + '%';
-            console.log('Reverb Wet/Dry:', Math.round(this.effects.reverb.wetDryMix * 100) + '%');
             this.updateEffectsChain();
         });
     }
@@ -574,64 +570,9 @@ class SpoonSoundApp {
     }
 
     updateEffectsChain() {
-        // Update existing effects chain parameters
-        if (this.effectsChain) {
-            // Update delay parameters
-            if (this.effectsChain.dubDelay && this.masterEffectsEnabled && this.effects.dubDelay.enabled) {
-                const { delayNode, feedbackGain, filterNode, wetGain, dryGain } = this.effectsChain.dubDelay;
-                delayNode.delayTime.setValueAtTime(this.effects.dubDelay.delayTime, this.audioContext.currentTime);
-                feedbackGain.gain.setValueAtTime(this.effects.dubDelay.feedback, this.audioContext.currentTime);
-                filterNode.frequency.setValueAtTime(this.effects.dubDelay.filterFreq, this.audioContext.currentTime);
-                wetGain.gain.setValueAtTime(this.effects.dubDelay.wetDryMix, this.audioContext.currentTime);
-                dryGain.gain.setValueAtTime(1 - this.effects.dubDelay.wetDryMix, this.audioContext.currentTime);
-            }
-
-
-            // Update overdrive parameters
-            if (this.effectsChain.overdrive && this.masterEffectsEnabled && this.effects.overdrive.enabled) {
-                const { driveGain, toneFilter, levelGain, waveShaper, wetGain, dryGain } = this.effectsChain.overdrive;
-                
-                // Update drive gain
-                driveGain.gain.setValueAtTime(1 + (this.effects.overdrive.drive * 10), this.audioContext.currentTime);
-                
-                // Update tone filter
-                toneFilter.frequency.setValueAtTime(80 + (this.effects.overdrive.tone * 200), this.audioContext.currentTime);
-                
-                // Update output level
-                levelGain.gain.setValueAtTime(this.effects.overdrive.level * 0.8, this.audioContext.currentTime);
-                
-                // Update wave shaper curve for drive amount
-                const samples = 44100;
-                const curve = new Float32Array(samples);
-                for (let i = 0; i < samples; i++) {
-                    const x = (i * 2) / samples - 1;
-                    const driveAmount = 1 + this.effects.overdrive.drive * 3;
-                    curve[i] = Math.tanh(x * driveAmount) / driveAmount;
-                }
-                waveShaper.curve = curve;
-                
-                // Update wet/dry mix
-                wetGain.gain.setValueAtTime(this.effects.overdrive.wetDryMix, this.audioContext.currentTime);
-                dryGain.gain.setValueAtTime(1 - this.effects.overdrive.wetDryMix, this.audioContext.currentTime);
-            }
-
-            // Update reverb parameters
-            if (this.effectsChain.reverb && this.masterEffectsEnabled && this.effects.reverb.enabled) {
-                const { convolver, wetGain, dryGain } = this.effectsChain.reverb;
-                // Create new impulse response if parameters changed
-                const newImpulse = this.createReverbImpulse(this.effects.reverb.roomSize, this.effects.reverb.decay, this.effects.reverb.damping);
-                convolver.buffer = newImpulse;
-                wetGain.gain.setValueAtTime(this.effects.reverb.wetDryMix, this.audioContext.currentTime);
-                dryGain.gain.setValueAtTime(1 - this.effects.reverb.wetDryMix, this.audioContext.currentTime);
-            }
-
-            // Update wet/dry mix levels
-            if (this.effectsChain.wetDryMix) {
-                const { dryGain, wetGain } = this.effectsChain.wetDryMix;
-                dryGain.gain.setValueAtTime(1 - this.wetDryMix, this.audioContext.currentTime);
-                wetGain.gain.setValueAtTime(this.wetDryMix, this.audioContext.currentTime);
-            }
-        }
+        // Effects chain parameters are now applied when each sound is created
+        // This method is kept for compatibility but doesn't need to do anything
+        // since we create fresh effects chains for each sound
     }
 
     setupOrientationControls() {
@@ -671,6 +612,9 @@ class SpoonSoundApp {
                 gamma: this.deviceOrientation.gamma
             };
             this.orientationCalibrated = true;
+            // Reset smoothing when calibrating
+            this.smoothedRoll = null;
+            this.lastNormalizedRoll = 0;
             console.log('🎛️ Orientation calibrated:', this.orientationOffset);
         }
 
@@ -689,8 +633,24 @@ class SpoonSoundApp {
         // Roll (gamma) controls wet/dry mix for all effects
         // Roll (gamma): -45 to +45 degrees, controls wet/dry mix (0 to 1)
         
-        const clampedRoll = Math.max(-45, Math.min(45, orientation.gamma));
-        const normalizedRoll = (clampedRoll + 45) / 90; // 0 to 1
+        // Add smoothing to prevent sudden jumps
+        if (!this.smoothedRoll) {
+            this.smoothedRoll = orientation.gamma || 0;
+        }
+        
+        // Smooth the roll value to prevent jumping
+        const smoothingFactor = 0.1; // Lower = more smoothing
+        this.smoothedRoll = this.smoothedRoll + (orientation.gamma - this.smoothedRoll) * smoothingFactor;
+        
+        // Clamp the smoothed roll value
+        const clampedRoll = Math.max(-45, Math.min(45, this.smoothedRoll));
+        
+        // Convert to 0-1 range with additional safety clamping
+        let normalizedRoll = (clampedRoll + 45) / 90; // 0 to 1
+        normalizedRoll = Math.max(0, Math.min(1, normalizedRoll)); // Extra safety clamp
+        
+        // Track orientation values for smoothing
+        this.lastNormalizedRoll = normalizedRoll;
         
         // Roll controls wet/dry mix for all effects
         this.effects.dubDelay.wetDryMix = normalizedRoll; // 0 to 1
@@ -896,7 +856,6 @@ class SpoonSoundApp {
         // Gate rapid triggers
         const isSignificant = this.detectVigorousShake(totalDelta, now);
         if (isSignificant && (now - this.lastMotionTime) > this.motionCooldown) {
-            console.log(`🎵 Vigorous shake detected! Delta: ${totalDelta.toFixed(2)}, Threshold: ${this.motionThreshold}`);
             this.lastMotionTime = now;
             this.triggerSound();
         }
@@ -989,20 +948,36 @@ class SpoonSoundApp {
 
     createReverbImpulse(roomSize, decay, damping) {
         const sampleRate = this.audioContext.sampleRate;
-        const length = Math.floor(sampleRate * roomSize);
+        
+        // Limit buffer size to prevent memory issues and audio dropouts
+        const maxLength = Math.floor(sampleRate * 3.0); // Max 3 seconds
+        const requestedLength = Math.floor(sampleRate * roomSize);
+        const length = Math.min(requestedLength, maxLength);
+        
         const impulse = this.audioContext.createBuffer(2, length, sampleRate);
         
         for (let channel = 0; channel < 2; channel++) {
             const channelData = impulse.getChannelData(channel);
             
             for (let i = 0; i < length; i++) {
-                // Create a decaying noise burst
-                const n = length - i;
-                const decayValue = Math.pow(n / length, decay);
-                const noise = (Math.random() * 2 - 1) * decayValue;
+                // Create a decaying noise burst with better decay curve
+                const progress = i / length;
+                
+                // Use exponential decay instead of power decay to prevent infinite tails
+                const decayValue = Math.exp(-progress * decay * 3); // Scale decay for better control
+                
+                // Add initial impulse spike for more realistic reverb
+                let noise;
+                if (i < 10) {
+                    // Initial spike
+                    noise = (Math.random() * 2 - 1) * 0.8;
+                } else {
+                    // Decaying noise
+                    noise = (Math.random() * 2 - 1) * decayValue * 0.3;
+                }
                 
                 // Apply damping (reduce high frequencies over time)
-                const dampingValue = Math.pow(damping, i / length);
+                const dampingValue = Math.pow(Math.max(damping, 0.1), progress); // Prevent zero damping
                 
                 channelData[i] = noise * dampingValue;
             }
@@ -1013,16 +988,14 @@ class SpoonSoundApp {
 
     // Create effects processing chain
     createEffectsChain(source) {
-        if (!this.effectsChain) {
-            this.effectsChain = {
-                dubDelay: null,
-                reverb: null,
-                overdrive: null,
-                output: this.audioContext.destination
-            };
-        }
-
+        // Always create a new effects chain for each sound to avoid conflicts
         let currentNode = source;
+        
+        // If no effects are enabled, connect directly to output
+        if (!this.masterEffectsEnabled || (!this.effects.dubDelay.enabled && !this.effects.reverb.enabled && !this.effects.overdrive.enabled)) {
+            source.connect(this.audioContext.destination);
+            return source;
+        }
 
         // Dub Delay Effect
         if (this.masterEffectsEnabled && this.effects.dubDelay.enabled) {
@@ -1051,13 +1024,12 @@ class SpoonSoundApp {
             feedbackGain.connect(delayNode);
             delayNode.connect(wetGain);
 
-            // Merge dry and wet
-            const merger = this.audioContext.createChannelMerger(2);
-            dryGain.connect(merger, 0, 0);
-            wetGain.connect(merger, 0, 1);
+            // Merge dry and wet using a simple gain node
+            const merger = this.audioContext.createGain();
+            dryGain.connect(merger);
+            wetGain.connect(merger);
 
             currentNode = merger;
-            this.effectsChain.dubDelay = { delayNode, feedbackGain, filterNode, wetGain, dryGain };
         }
 
         // Reverb Effect
@@ -1065,9 +1037,21 @@ class SpoonSoundApp {
             const wetGain = this.audioContext.createGain();
             const dryGain = this.audioContext.createGain();
             
-            // Create reverb using convolver with impulse response
+            // Create reverb using convolver with impulse response (cached for performance)
             const convolver = this.audioContext.createConvolver();
-            const impulseBuffer = this.createReverbImpulse(this.effects.reverb.roomSize, this.effects.reverb.decay, this.effects.reverb.damping);
+            const cacheKey = `${this.effects.reverb.roomSize.toFixed(1)}_${this.effects.reverb.decay.toFixed(1)}_${this.effects.reverb.damping.toFixed(1)}`;
+            
+            let impulseBuffer;
+            if (this.reverbBufferCache.has(cacheKey)) {
+                impulseBuffer = this.reverbBufferCache.get(cacheKey);
+            } else {
+                impulseBuffer = this.createReverbImpulse(this.effects.reverb.roomSize, this.effects.reverb.decay, this.effects.reverb.damping);
+                // Cache the buffer (limit cache size to prevent memory issues)
+                if (this.reverbBufferCache.size < 10) {
+                    this.reverbBufferCache.set(cacheKey, impulseBuffer);
+                }
+            }
+            
             convolver.buffer = impulseBuffer;
 
             // Individual wet/dry mix controls
@@ -1079,13 +1063,12 @@ class SpoonSoundApp {
             currentNode.connect(convolver);
             convolver.connect(wetGain);
 
-            // Merge dry and wet
-            const merger = this.audioContext.createChannelMerger(2);
-            dryGain.connect(merger, 0, 0);
-            wetGain.connect(merger, 0, 1);
+            // Merge dry and wet using a simple gain node
+            const merger = this.audioContext.createGain();
+            dryGain.connect(merger);
+            wetGain.connect(merger);
 
             currentNode = merger;
-            this.effectsChain.reverb = { convolver, wetGain, dryGain };
         }
 
         // Overdrive Effect
@@ -1133,37 +1116,33 @@ class SpoonSoundApp {
             toneFilter.connect(levelGain);
             levelGain.connect(wetGain);
 
-            // Merge dry and wet
-            const merger = this.audioContext.createChannelMerger(2);
-            dryGain.connect(merger, 0, 0);
-            wetGain.connect(merger, 0, 1);
+            // Merge dry and wet using a simple gain node
+            const merger = this.audioContext.createGain();
+            dryGain.connect(merger);
+            wetGain.connect(merger);
 
             currentNode = merger;
-            this.effectsChain.overdrive = { driveGain, toneFilter, levelGain, waveShaper, wetGain, dryGain };
         }
 
         // Final wet/dry mix stage
         const dryGain = this.audioContext.createGain();
         const wetGain = this.audioContext.createGain();
-        const finalMerger = this.audioContext.createChannelMerger(2);
+        const finalMerger = this.audioContext.createGain();
 
         // Connect dry signal (bypass effects)
         source.connect(dryGain);
-        dryGain.connect(finalMerger, 0, 0);
+        dryGain.connect(finalMerger);
 
         // Connect wet signal (through effects)
         currentNode.connect(wetGain);
-        wetGain.connect(finalMerger, 0, 1);
+        wetGain.connect(finalMerger);
 
         // Set wet/dry mix levels
         dryGain.gain.setValueAtTime(1 - this.wetDryMix, this.audioContext.currentTime);
         wetGain.gain.setValueAtTime(this.wetDryMix, this.audioContext.currentTime);
 
         // Connect to output
-        finalMerger.connect(this.effectsChain.output);
-
-        // Store wet/dry gain nodes for updates
-        this.effectsChain.wetDryMix = { dryGain, wetGain };
+        finalMerger.connect(this.audioContext.destination);
 
         return finalMerger;
     }
@@ -1351,10 +1330,7 @@ class SpoonSoundApp {
             // Use material-specific attack time for sharper percussive attack
             const attackTime = cfg.attackTime || 0.001; // Default 1ms, wood uses 0.5ms
             
-            // Debug: Log when using enhanced attack time
-            if (cfg.attackTime && cfg.attackTime < 0.001) {
-                console.log('⚡ Using enhanced attack time:', attackTime, 'for', cfg.name);
-            }
+            // Using enhanced attack time for better sound
             
             gain.gain.setValueAtTime(0, t);
             gain.gain.linearRampToValueAtTime(vol, t + attackTime);
@@ -1373,13 +1349,7 @@ class SpoonSoundApp {
         const harmonics = cfg.harmonicContent || [1.0, 0.6, 0.3, 0.15, 0.08];
         const resonanceQ = cfg.resonanceQ || 1.0;
         
-        // Debug: Log when using enhanced wooden spoon parameters
-        if (cfg.name === 'Wooden Spoon' && cfg.harmonicContent) {
-            console.log('🎵 Using enhanced wooden spoon synthesis with', harmonics.length, 'harmonics');
-        }
-        
-        // Debug: Log boosted volume levels for desktop testing
-        console.log('🔊 Boosted volume levels active - base:', this.baseVolume, 'toneVol:', toneVol);
+        // Enhanced wooden spoon parameters are being used
         
         // Create multiple oscillators for harmonic richness (like real wooden resonance)
         const oscillators = [];
@@ -1586,8 +1556,10 @@ class SpoonSoundApp {
             }
         }
     }
+
+    // Version is now managed manually in HTML - no JavaScript version management
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    new SpoonSoundApp();
+    const app = new SpoonSoundApp();
 });
