@@ -1470,6 +1470,31 @@ header::before {
     .pedal-header h4 {
         font-size: 1.1rem;
     }
+    
+    /* Reorganize effect layout on mobile for better control */
+    .effects-pedal {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .pedal-header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    /* Move wet/dry controls right after the toggle */
+    .pedal-controls .control-group:last-child {
+        order: -1;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 215, 0, 0.3);
+    }
+    
+    /* Make wet/dry sliders wider for better control */
+    .pedal-controls .control-group:last-child input[type="range"] {
+        width: 120px;
+    }
 }
 
 @media (max-width: 480px) {
